@@ -13,19 +13,11 @@ public class ServiceClientes {
     @Autowired
     private DAO dao;
 
-    public List<Cliente> listarClientes() {
-        return dao.listarCliente();
+    public List<Cliente> listarClientes(String nomeCliente, Integer nroCliente) {
+        return null;
     }
-
-    public List<Cliente> buscarCliente(String nome) {
-        return dao.listarCliente(nome);
-    }
-
-    public List<Cliente> buscarCliente(Integer id) {
-        return dao.listarCliente(id);
-    }
-
+    
     public Cliente criarCliente(Cliente cliente) {
-        return dao.criarCliente(cliente);
+        return null;
     }
 }

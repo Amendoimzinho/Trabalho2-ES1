@@ -22,17 +22,10 @@ public class ControllerClientes {
 
     @GetMapping
     public List<Cliente> listarClientes(
-        @RequestParam(required=false) String nome,
+        @RequestParam(required=false) String nomeCliente,
         @RequestParam(required=false) Integer nroCliente
     ) {
-        if(nroCliente!=null)
-           return service.buscarCliente(nroCliente);
-
-        if(nome!=null) {
-            return service.buscarCliente(nome);
-        }
-        else
-            return service.listarClientes();
+        return service.listarClientes(nomeCliente, nroCliente);
     }
 
     @PostMapping
