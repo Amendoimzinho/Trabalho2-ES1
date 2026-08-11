@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patas Felizes - Área do Cliente</title>
+    <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+    <header id="global-header" class="header-container"></header>
+    
+    <main class="main-container">
+        <section class="options-container">
+            <!-- <button class="btn-category direct-action" data-title="Meu Cadastro" data-template="tmpl-self-cadastro">
+                Se Cadastrar
+            </button>
+            <button class="btn-category direct-action" data-title="Cadastrar Meu Pet" data-template="tmpl-self-pet">
+                Cadastrar um Pet
+            </button> -->
+            <button class="btn-category direct-action" data-title="Agendar Atendimento" data-template="tmpl-self-agendamento">
+                Agendar Atendimento
+            </button>
+        </section>
+
+        <section id="dynamic-panel" class="panel-container">
+            <div class="panel-header">
+                <h2 id="panel-title">Título</h2>
+                <button id="close-panel" class="btn-close">&times;</button>
+            </div>
+            
+            <div id="panel-dynamic-body" class="panel-body"></div>
+        </section>
+    </main>
+
+    <!-- <template id="tmpl-self-cadastro">
+        <form class="modal-form">
+            <input type="text" placeholder="Seu Nome Completo" required>
+            <input type="email" placeholder="Seu E-mail" required>
+            <input type="text" placeholder="CPF" required>
+            <input type="tel" placeholder="Seu Telefone" required>
+            <input type="password" placeholder="Crie uma Senha" required>
+            
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary close-panel-action">Cancelar</button>
+                <button type="button" class="btn-primary close-panel-action">Criar Minha Conta</button>
+            </div>
+        </form>
+    </template> -->
+
+    <!-- <template id="tmpl-self-pet">
+        <form class="modal-form">
+            <input type="text" placeholder="Nome do seu Pet" required>
+            <select required>
+                <option value="" disabled selected>Qual a espécie?</option>
+                <option>Cachorro</option>
+                <option>Gato</option>
+                <option>Exótico</option>
+            </select>
+            <input type="text" placeholder="Qual a raça? (Opcional)">
+            <input type="number" placeholder="Idade (Anos)" min="0">
+            
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary close-panel-action">Cancelar</button>
+                <button type="button" class="btn-primary close-panel-action">Cadastrar Pet</button>
+            </div>
+        </form>
+    </template> -->
+
+    <template id="tmpl-self-agendamento">
+        <form class="modal-form">
+            <select required>
+                <option value="" disabled selected>Selecione o Pet...</option>
+                <option>Rex (Cachorro)</option>
+                <option>Mial (Gato)</option>
+                <option>-- Cadastrar novo pet --</option>
+            </select>
+            <select required>
+                <option value="" disabled selected>Motivo da visita...</option>
+                <option>Consulta Geral</option>
+                <option>Vacina</option>
+                <option>Banho & Tosa</option>
+            </select>
+            <input type="date" required>
+            <input type="time" required>
+            
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary close-panel-action">Cancelar</button>
+                <button type="button" class="btn-primary close-panel-action">Confirmar Agendamento</button>
+            </div>
+        </form>
+    </template>
+
+    <script src="scripts/navbar-loader.js"></script>
+    <script src="scripts/cliente.js"></script>
+</body>
+</html>

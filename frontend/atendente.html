@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patas Felizes - Área do Atendente</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet" />
+</head>
+<body>
+    <header id="global-header" class="header-container"></header>
+    
+    <main class="main-container">
+
+        <section class="categories-container">
+            <button class="btn-category" data-category="clientes">Gerenciar Clientes</button>
+            <button class="btn-category" data-category="pets">Gerenciar Pets</button>
+            <button class="btn-category" data-category="atendimentos">Gerenciar Atendimentos</button>
+        </section>
+        
+        <section id="options-container" class="options-container"></section>
+
+        <section id="dynamic-panel" class="panel-container">
+            <div class="panel-header">
+                <h2 id="panel-title">Título</h2>
+                <button id="close-panel" class="btn-close">&times;</button>
+            </div>
+            
+            <div id="panel-dynamic-body" class="panel-body"></div>
+        </section>
+    </main>
+
+    <template id="tmpl-cadastrar-cliente">
+        <form class="modal-form">
+            <input type="text" placeholder="Nome Completo" required>
+            <input type="text" placeholder="CPF" required>
+            <input type="tel" placeholder="Telefone" required>
+            <input type="text" placeholder="Endereço">
+            
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary close-panel-action">Cancelar</button>
+                <button type="button" class="btn-primary close-panel-action">Salvar Cadastro</button>
+            </div>
+        </form>
+    </template>
+
+    <template id="tmpl-consultar-clientes">
+        <div class="list-container">
+            <div class="filter-bar">
+                <input type="text" placeholder="Buscar cliente por nome ou CPF...">
+                <select>
+                    <option>Ativos</option>
+                    <option>Inativos</option>
+                </select>
+            </div>
+            <ul class="data-list">
+                <li class="data-item">
+                    <div class="item-info">
+                        <strong>João Silva</strong>
+                        <span>(45) 99999-1234</span>
+                    </div>
+                    <div class="item-actions">
+                        <button class="action-btn" title="Visualizar">
+                            <span class="material-symbols-outlined">visibility</span>
+                        </button>
+                        <button class="action-btn">
+                            <span class="material-symbols-outlined">edit</span>
+                        </button>
+                        <button class="action-btn delete-btn" title="Excluir">
+                            <span class="material-symbols-outlined">delete</span>
+                        </button>
+                    </div>
+                </li>
+                <li class="data-item">
+                    <div class="item-info">
+                        <strong>Maria Oliveira</strong>
+                        <span>(45) 98888-5678</span>
+                    </div>
+                    <div class="item-actions">
+                        <button class="action-btn" title="Visualizar">
+                            <span class="material-symbols-outlined">visibility</span>
+                        </button>
+                        <button class="action-btn">
+                            <span class="material-symbols-outlined">edit</span>
+                        </button>
+                        <button class="action-btn delete-btn" title="Excluir">
+                            <span class="material-symbols-outlined">delete</span>
+                        </button>
+                    </div>
+                </li>
+            </ul>
+            </div>
+    </template>
+
+    <template id="tmpl-cadastrar-pet">
+        <form class="modal-form">
+            <input type="text" placeholder="Nome do Pet" required>
+            <select required>
+                <option value="" disabled selected>Espécie...</option>
+                <option>Cachorro</option>
+                <option>Gato</option>
+                <option>Exótico</option>
+            </select>
+            <input type="text" placeholder="Raça">
+            <input type="text" placeholder="Tutor Responsável" required>
+            
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary close-panel-action">Cancelar</button>
+                <button type="button" class="btn-primary close-panel-action">Salvar Pet</button>
+            </div>
+        </form>
+    </template>
+
+    <template id="tmpl-consultar-pets">
+        <div class="list-container">
+            <div class="filter-bar">
+                <input type="text" placeholder="Buscar pet por nome ou raça...">
+                <select>
+                    <option>Cachorros</option>
+                    <option>Gatos</option>
+                    <option>Todos</option>
+                </select>
+            </div>
+            <ul class="data-list">
+                <li class="data-item">
+                    <div class="item-info">
+                        <strong>Rex</strong>
+                        <span>Cachorro - Pastor Alemão</span>
+                    </div>
+                    <div class="item-actions">
+                        <button class="action-btn" title="Visualizar">
+                            <span class="material-symbols-outlined">visibility</span>
+                        </button>
+                        <button class="action-btn">
+                            <span class="material-symbols-outlined">edit</span>
+                        </button>
+                        <button class="action-btn delete-btn" title="Excluir">
+                            <span class="material-symbols-outlined">delete</span>
+                        </button>
+                    </div>
+                </li>
+            </ul>
+            </div>
+    </template>
+
+    <template id="tmpl-agendar-atendimento">
+        <form class="modal-form">
+            <input type="date" required>
+            <input type="time" required>
+            <input type="text" placeholder="Nome do Pet" required>
+            <select required>
+                <option value="" disabled selected>Motivo do Atendimento...</option>
+                <option>Consulta de Rotina</option>
+                <option>Vacinação</option>
+                <option>Emergência</option>
+                <option>Banho & Tosa</option>
+            </select>
+            
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary close-panel-action">Cancelar</button>
+                <button type="button" class="btn-primary close-panel-action">Agendar</button>
+            </div>
+        </form>
+    </template>
+
+    <template id="tmpl-consultar-atendimentos">
+        <div class="list-container">
+            <div class="filter-bar">
+                <input type="date">
+                <select>
+                    <option>Pendentes</option>
+                    <option>Concluídos</option>
+                    <option>Cancelados</option>
+                </select>
+            </div>
+            <ul class="data-list">
+                <li class="data-item">
+                    <div class="item-info">
+                        <strong>Consulta: Rex</strong>
+                        <span>16/06/2026 - 14:30</span>
+                    </div>
+                    <div class="item-actions">
+                        <button class="action-btn" title="Visualizar">
+                            <span class="material-symbols-outlined">visibility</span>
+                        </button>
+                        <button class="action-btn">
+                            <span class="material-symbols-outlined">edit</span>
+                        </button>
+                        <button class="action-btn delete-btn" title="Excluir">
+                            <span class="material-symbols-outlined">delete</span>
+                        </button>
+                    </div>
+                </li>
+            </ul>
+            </div>
+    </template>
+
+    <script src="scripts/navbar-loader.js"></script>
+    <script src="scripts/script.js"></script>
+</body>
+</html>
