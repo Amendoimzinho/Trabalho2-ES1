@@ -1,5 +1,6 @@
 package com.patasfelizes.api.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,10 @@ public class ServiceVeterinario {
     private DAO dao;
 
     public List<Veterinario> listarVeterinarios(Integer nroVeterinario, String nomeVeterinario) {
+        return null;
+    }
+
+    public List<LocalDateTime> listarHorariosVeterinario(Integer nroVeterinario, String nomeVeterinario) {
         return null;
     }
 }

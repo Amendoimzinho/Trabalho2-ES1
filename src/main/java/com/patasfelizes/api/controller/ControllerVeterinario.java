@@ -1,5 +1,6 @@
 package com.patasfelizes.api.controller;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,12 +19,16 @@ public class ControllerVeterinario {
     private ServiceVeterinario service;
 
     @GetMapping
-    public List<Veterinario> listaVeterinarios(
+    public List<Veterinario> listarVeterinarios(
         @RequestParam(required=false) Integer nroVeterinario,
-        @RequestParam(required=false) String nomeVeterinario
-    ){
-        return service.listarVeterinarios(nroVeterinario, nomeVeterinario);
+        @RequestParam(required=false) String nomeVeterinario){
+            return service.listarVeterinarios(nroVeterinario, nomeVeterinario);
     }
 
-    
+    @GetMapping("/horarios")
+    public List<LocalDateTime> listarHorarios(
+        @RequestParam(required=true) Integer nroVeterinario,
+        @RequestParam(required=false) String nomeVeterinario) {
+            return service.listarHorariosVeterinario(nroVeterinario, nomeVeterinario);
+        }
 }
