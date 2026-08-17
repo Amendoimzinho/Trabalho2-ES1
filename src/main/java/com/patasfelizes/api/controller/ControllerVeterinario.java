@@ -30,5 +30,5 @@ public class ControllerVeterinario {
         @RequestParam(required=true) Integer nroVeterinario,
         @RequestParam(required=false) String nomeVeterinario) {
             return service.listarHorariosVeterinario(nroVeterinario, nomeVeterinario);
-        }
+    }
 }
