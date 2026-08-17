@@ -1,5 +1,4 @@
-package com.patasfelizes.api.entities;
-
+package com.patasfelizes.api.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -11,8 +10,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 
 @Entity
-@Table(name = "EmailVeterinario")
-public class EntityEmailVeterinario {
+@Table(name = "TelefoneVeterinario")
+public class EntityTelefoneVeterinario {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
@@ -20,8 +19,12 @@ public class EntityEmailVeterinario {
     @JoinColumn(name = "nroVeterinario", nullable = false)
     private EntityVeterinario veterinario;
 
-    @Column(name = "edrEmail")
-    private String email;
+    @ManyToOne
+    @JoinColumn(name = "nroDDD", nullable = false)
+    private EntityDDD ddd;
+
+    @Column(name = "telefone", length = 10)
+    private String telefone;
 
     public Integer getId() {
         return id;
@@ -39,19 +42,26 @@ public class EntityEmailVeterinario {
         this.veterinario = veterinario;
     }
 
-    public String getEmail() {
-        return email;
+    public EntityDDD getDdd() {
+        return ddd;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    public void setDdd(EntityDDD ddd) {
+        this.ddd = ddd;
     }
 
-    public EntityEmailVeterinario(Integer id, EntityVeterinario veterinario, String email) {
+    public String getTelefone() {
+        return telefone;
+    }
+
+    public void setTelefone(String telefone) {
+        this.telefone = telefone;
+    }
+
+    public EntityTelefoneVeterinario(Integer id, EntityVeterinario veterinario, EntityDDD ddd, String telefone) {
         this.id = id;
         this.veterinario = veterinario;
-        this.email = email;
+        this.ddd = ddd;
+        this.telefone = telefone;
     }
 }
-
-

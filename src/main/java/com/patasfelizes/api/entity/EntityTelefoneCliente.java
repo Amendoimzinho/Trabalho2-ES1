@@ -1,5 +1,4 @@
-package com.patasfelizes.api.entities;
-
+package com.patasfelizes.api.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -11,17 +10,21 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 
 @Entity
-@Table(name = "EmailCliente")
-public class EntityEmailCliente {
+@Table(name = "TelefoneCliente")
+public class EntityTelefoneCliente {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id; // PK artificial necessária pro JPA
+    private Integer id;
 
     @ManyToOne
     @JoinColumn(name = "nroCliente", nullable = false)
     private EntityCliente cliente;
 
-    @Column(name = "edrEmail")
-    private String email;
+    @ManyToOne
+    @JoinColumn(name = "nroDDD", nullable = false)
+    private EntityDDD ddd;
+
+    @Column(name = "telefone", length = 10)
+    private String telefone;
 
     public Integer getId() {
         return id;
@@ -39,19 +42,29 @@ public class EntityEmailCliente {
         this.cliente = cliente;
     }
 
-    public String getEmail() {
-        return email;
+    public EntityDDD getDdd() {
+        return ddd;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    public void setDdd(EntityDDD ddd) {
+        this.ddd = ddd;
     }
 
-    public EntityEmailCliente(Integer id, EntityCliente cliente, String email) {
+    public String getTelefone() {
+        return telefone;
+    }
+
+    public void setTelefone(String telefone) {
+        this.telefone = telefone;
+    }
+
+    public EntityTelefoneCliente(Integer id, EntityCliente cliente, EntityDDD ddd, String telefone) {
         this.id = id;
         this.cliente = cliente;
-        this.email = email;
+        this.ddd = ddd;
+        this.telefone = telefone;
     }
 
-
 }
+
+

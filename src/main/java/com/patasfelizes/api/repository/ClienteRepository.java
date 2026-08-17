@@ -1,9 +1,10 @@
-package com.patasfelizes.api.repositories;
-
-import com.patasfelizes.api.entities.EntityCliente;
+package com.patasfelizes.api.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+
+import com.patasfelizes.api.entity.EntityCliente;
+
 import java.util.List;
 
 @Repository

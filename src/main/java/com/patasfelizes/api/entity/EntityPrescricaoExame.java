@@ -1,4 +1,4 @@
-package com.patasfelizes.api.entities;
+package com.patasfelizes.api.entity;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
