@@ -5,8 +5,8 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.patasfelizes.api.dao.DAO;
 import com.patasfelizes.api.model.Atendimento;
+import com.patasfelizes.api.repositories.DAO;
 
 @Service
 public class ServiceAtendimento {

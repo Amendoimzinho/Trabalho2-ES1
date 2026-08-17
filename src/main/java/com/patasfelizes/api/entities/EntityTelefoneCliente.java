@@ -1,0 +1,70 @@
+package com.patasfelizes.api.entities;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+
+@Entity
+@Table(name = "TelefoneCliente")
+public class EntityTelefoneCliente {
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
+
+    @ManyToOne
+    @JoinColumn(name = "nroCliente", nullable = false)
+    private EntityCliente cliente;
+
+    @ManyToOne
+    @JoinColumn(name = "nroDDD", nullable = false)
+    private EntityDDD ddd;
+
+    @Column(name = "telefone", length = 10)
+    private String telefone;
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public EntityCliente getCliente() {
+        return cliente;
+    }
+
+    public void setCliente(EntityCliente cliente) {
+        this.cliente = cliente;
+    }
+
+    public EntityDDD getDdd() {
+        return ddd;
+    }
+
+    public void setDdd(EntityDDD ddd) {
+        this.ddd = ddd;
+    }
+
+    public String getTelefone() {
+        return telefone;
+    }
+
+    public void setTelefone(String telefone) {
+        this.telefone = telefone;
+    }
+
+    public EntityTelefoneCliente(Integer id, EntityCliente cliente, EntityDDD ddd, String telefone) {
+        this.id = id;
+        this.cliente = cliente;
+        this.ddd = ddd;
+        this.telefone = telefone;
+    }
+
+}
+
+
