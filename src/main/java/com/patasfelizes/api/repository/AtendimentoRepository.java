@@ -8,9 +8,7 @@ import java.util.List;
 
 @Repository
 public interface AtendimentoRepository extends JpaRepository<EntityAtendimento, Integer> {
-
-    // Funcionalidade: Verificar horários ocupados de um veterinário num intervalo de tempo
-    // Tradução: SELECT * FROM Atendimento WHERE nroVeterinario = ? AND inicioAtendimento BETWEEN ? AND ?
+    // SELECT * FROM Atendimento WHERE nroVeterinario = ? AND inicioAtendimento BETWEEN ? AND ?
     List<EntityAtendimento> findByVeterinarioNroVeterinarioAndInicioAtendimentoBetween(
         Integer nroVeterinario, 
         LocalDateTime inicioDoDia, 
