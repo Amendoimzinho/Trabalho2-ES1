@@ -4,7 +4,7 @@ public class Atendimento {
     public String tipoAtendimento;
     public String nomeAnimal;
     public Integer nroAnimal;
-    public Integer nomeVeterinario;
+    public String nomeVeterinario;
     public Integer nroVeterinario;
 
     public String ini_dataAtendimento;

@@ -1,15 +1,17 @@
 package com.patasfelizes.api.entity;
 
+import java.time.LocalDateTime;
+
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.JoinColumn;
-
-import java.time.LocalDateTime;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "Atendimento")
@@ -30,6 +32,9 @@ public class EntityAtendimento {
     @ManyToOne
     @JoinColumn(name = "nroVeterinario", nullable = false)
     private EntityVeterinario veterinario;
+
+    @OneToMany(mappedBy = "atendimento", cascade = CascadeType.ALL, orphanRemoval = true)
+    private java.util.List<EntityAtendimentoConsulta> consultas;
 
     @Column(name = "ini_dataAtendimento")
     private LocalDateTime inicioAtendimento;
@@ -83,6 +88,14 @@ public class EntityAtendimento {
 
     public void setFimAtendimento(LocalDateTime fimAtendimento) {
         this.fimAtendimento = fimAtendimento;
+    }
+
+    public java.util.List<EntityAtendimentoConsulta> getConsultas() { 
+        return consultas; 
+    }
+
+    public void setConsultas(java.util.List<EntityAtendimentoConsulta> consultas) { 
+        this.consultas = consultas; 
     }
 
     public EntityAtendimento() {

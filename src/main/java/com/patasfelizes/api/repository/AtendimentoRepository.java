@@ -1,17 +1,11 @@
 package com.patasfelizes.api.repository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
-import com.patasfelizes.api.entity.EntityAtendimento;
-import java.time.LocalDateTime;
 import java.util.List;
+import org.springframework.data.jpa.repository.JpaRepository;
+import com.patasfelizes.api.entity.EntityAtendimento;
+import com.patasfelizes.api.entity.EntityVeterinario;
 
-@Repository
 public interface AtendimentoRepository extends JpaRepository<EntityAtendimento, Integer> {
-    // SELECT * FROM Atendimento WHERE nroVeterinario = ? AND inicioAtendimento BETWEEN ? AND ?
-    List<EntityAtendimento> findByVeterinarioNroVeterinarioAndInicioAtendimentoBetween(
-        Integer nroVeterinario, 
-        LocalDateTime inicioDoDia, 
-        LocalDateTime fimDoDia
-    );
+    // Usado no ServiceVeterinario para calcular horários livres
+    List<EntityAtendimento> findByVeterinario(EntityVeterinario veterinario);
 }

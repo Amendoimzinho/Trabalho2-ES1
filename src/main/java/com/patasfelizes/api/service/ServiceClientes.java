@@ -9,7 +9,7 @@ import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.patasfelizes.api.model.Cliente; // Seu VO
+import com.patasfelizes.api.model.Cliente;
 import com.patasfelizes.api.entity.EntityCliente;
 import com.patasfelizes.api.entity.EntityEmailCliente;
 import com.patasfelizes.api.entity.EntityEnderecoCliente;
