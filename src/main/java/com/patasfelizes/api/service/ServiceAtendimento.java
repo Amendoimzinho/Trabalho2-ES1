@@ -27,8 +27,16 @@ public class ServiceAtendimento {
     @Autowired private AnimalRepository animalRepository;
     @Autowired private VeterinarioRepository veterinarioRepository;
     @Autowired private TipoAtendimentoRepository tipoAtendimentoRepository;
+    @Autowired private ServiceVeterinario serviceVeterinario;
 
     public AtendimentoConsulta agendarAtendimento(AtendimentoConsulta vo) {
+        LocalDateTime horarioEscolhido = LocalDateTime.parse(vo.ini_dataAtendimento);
+        List<LocalDateTime> horariosLivres = serviceVeterinario.calcularHorariosDisponiveis(vo.nroVeterinario);
+        
+        if (!horariosLivres.contains(horarioEscolhido)) {
+            throw new RuntimeException("Erro: Horário indisponível ou fora do expediente do veterinário.");
+        }
+        
         EntityAtendimento atendimento = new EntityAtendimento();
 
         EntityAnimal animal = animalRepository.findById(vo.nroAnimal)
@@ -42,10 +50,8 @@ public class ServiceAtendimento {
         atendimento.setVeterinario(veterinario);
         atendimento.setTipoAtendimento(tipo);
         
-        if (vo.ini_dataAtendimento != null) {
-            atendimento.setInicioAtendimento(LocalDateTime.parse(vo.ini_dataAtendimento));
-            atendimento.setFimAtendimento(atendimento.getInicioAtendimento().plusHours(1)); 
-        }
+        atendimento.setInicioAtendimento(horarioEscolhido);
+        atendimento.setFimAtendimento(horarioEscolhido.plusHours(1)); 
 
         EntityAtendimentoConsulta consulta = new EntityAtendimentoConsulta();
         consulta.setObservacoes(vo.observacoes);
@@ -62,18 +68,12 @@ public class ServiceAtendimento {
         return todos.stream()
             .filter(a -> {
                 boolean bateu = true;
-            
                 if (nomeCliente != null && !nomeCliente.trim().isEmpty()) {
                     String nomeCadastrado = a.getAnimal().getCliente().getNomeCliente().toLowerCase();
                     if (!nomeCadastrado.contains(nomeCliente.toLowerCase())) bateu = false;
                 }
-                
-                if (nroAnimal != null) 
-                    if (!a.getAnimal().getNroAnimal().equals(nroAnimal)) bateu = false;
-                
-                if (nroTipoAtendimento != null) 
-                    if (!a.getTipoAtendimento().getNroTipoAtendimento().equals(nroTipoAtendimento)) bateu = false;
-                
+                if (nroAnimal != null && !a.getAnimal().getNroAnimal().equals(nroAnimal)) bateu = false;
+                if (nroTipoAtendimento != null && !a.getTipoAtendimento().getNroTipoAtendimento().equals(nroTipoAtendimento)) bateu = false;
                 return bateu;
             })
             .map(this::toVO)

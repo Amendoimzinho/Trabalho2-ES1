@@ -13,11 +13,5 @@ public class ApiApplication {
     }
 
     @Bean
-    public CommandLineRunner test() {
-        return args -> {
-            try { 
-
-            } catch (Exception e) { e.printStackTrace(); }
-        };
-    }
+    public CommandLineRunner test(){ return null; }
 }
