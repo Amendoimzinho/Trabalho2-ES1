@@ -27,6 +27,7 @@ public class ServiceGemini {
     private String apiKey;
     
     private static final String GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent";
+    private static final String API_URL = "http://localhost:8080/api";
     
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
@@ -36,22 +37,22 @@ public class ServiceGemini {
         Você é um assistente virtual especializado de uma clínica veterinária chamada "PatasFelizes".
         
         SUA FUNÇÃO:
-        - Você ajuda pacientes com dúvidas sobre consultas, exames e informações da clínica
+        - Você ajuda Clientes com dúvidas sobre consultas, Atendimentos e informações da clínica
         - Você é educado, empático e profissional
         - Você NUNCA dá diagnósticos médicos
         - Você sempre recomenda procurar um médico para qualquer sintoma
         
         REGRAS IMPORTANTES:
-        1. Para informações sobre pacientes, use a função 'buscarPaciente'
+        1. Para informações sobre Clientes, use a função 'buscarCliente'
         2. Para agendar consultas, use a função 'agendarConsulta'
         3. Para verificar horários disponíveis, use a função 'verificarHorarios'
-        4. Para informações sobre exames, use a função 'buscarExame'
+        4. Para informações sobre Atendimentos, use a função 'buscarAtendimento'
         5. SEMPRE confirme os dados antes de agendar algo
         
         EXEMPLOS DE RESPOSTA:
         - "Olá! Posso ajudar com informações sobre a clínica. Como posso auxiliá-lo hoje?"
         - "Entendi que você quer agendar uma consulta. Vou verificar os horários disponíveis para você."
-        - "Com base nas informações, aqui estão os dados do paciente: [dados]"
+        - "Com base nas informações, aqui estão os dados do Cliente: [dados]"
         
         Lembre-se: Você é um assistente amigável e prestativo da Clínica PatasFelizes!
         """;
@@ -129,8 +130,8 @@ public class ServiceGemini {
         Map<String, Object> tools = new HashMap<>();
         List<Map<String, Object>> functionDeclarations = new ArrayList<>();
         
-        // Tool 1: Buscar paciente
-        functionDeclarations.add(criarToolBuscarPaciente());
+        // Tool 1: Buscar Cliente
+        functionDeclarations.add(criarToolBuscarCliente());
         
         // Tool 2: Agendar consulta
         functionDeclarations.add(criarToolAgendarConsulta());
@@ -138,8 +139,8 @@ public class ServiceGemini {
         // Tool 3: Verificar horários
         functionDeclarations.add(criarToolVerificarHorarios());
         
-        // Tool 4: Buscar exame
-        functionDeclarations.add(criarToolBuscarExame());
+        // Tool 4: Buscar Atendimento
+        functionDeclarations.add(criarToolBuscarAtendimento());
         
         tools.put("functionDeclarations", functionDeclarations);
         body.put("tools", tools);
@@ -154,59 +155,28 @@ public class ServiceGemini {
     }
     
     /**
-     * 🔧 TOOL 1: Buscar paciente
+     * 🔧 TOOL 1: Buscar Cliente
      */
-    private Map<String, Object> criarToolBuscarPaciente() {
+    private Map<String, Object> criarToolBuscarCliente() {
         Map<String, Object> function = new HashMap<>();
-        function.put("name", "buscarPaciente");
-        function.put("description", "Busca informações de um paciente pelo nome, CPF ou ID");
+        function.put("name", "buscarCliente");
+        function.put("description", "Busca informações de um Cliente pelo nome ou ID");
         
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("type", "object");
         
         Map<String, Object> properties = new HashMap<>();
         
-        Map<String, Object> nomeProp = new HashMap<>();
-        nomeProp.put("type", "string");
-        nomeProp.put("description", "Nome completo ou parcial do paciente");
-        properties.put("nome", nomeProp);
+        Map<String, Object> nomeClienteProp = new HashMap<>();
+        nomeClienteProp.put("type", "string");
+        nomeClienteProp.put("description", "Nome completo ou parcial do Cliente");
+        properties.put("nomeCliente", nomeClienteProp);
         
-        Map<String, Object> cpfProp = new HashMap<>();
-        cpfProp.put("type", "string");
-        cpfProp.put("description", "CPF do paciente (apenas números)");
-        properties.put("cpf", cpfProp);
-        
-        Map<String, Object> idProp = new HashMap<>();
-        idProp.put("type", "integer");
-        idProp.put("description", "ID do paciente no sistema");
-        properties.put("id", idProp);
+        Map<String, Object> nroClienteProp = new HashMap<>();
+        nroClienteProp.put("type", "string");
+        nroClienteProp.put("description", "ID do cliente no sistema (número de indentificação)");
+        properties.put("nroCliente", nroClienteProp);
 
-        // Map<String, Object> cepProp = new HashMap<>();
-        // cepProp.put("type", "string");
-        // cepProp.put("description", "Código de endereçamento postal");
-        // properties.put("cep", cepProp);
-
-        // Map<String, Object> logradouroProp = new HashMap<>();
-        // logradouroProp.put("type", "string");
-        // logradouroProp.put("description", "Logradouro do endereco, como rua, avenida, alameda, etc...");
-        // properties.put("logradouro", logradouroProp);
-
-        // Map<String, Object> bairroProp = new HashMap<>();
-        // bairroProp.put("type", "string");
-        // bairroProp.put("description", "Nome do bairro de residência do cliente");
-        // properties.put("bairo", bairroProp);
-
-        // Map<String, Object> cidadeProp = new HashMap<>();
-        // cidadeProp.put("type", "string");
-        // cidadeProp.put("description", "Cidade de residência do cliente");
-        // properties.put("cidade", cidadeProp);
-
-        // Map<String, Object> estadoProp = new HashMap<>();
-        // estadoProp.put("type", "string");
-        // estadoProp.put("description", "Estado de residência do cliente");
-        // properties.put("cidade", estadoProp);
-
-        
         parameters.put("properties", properties);
         function.put("parameters", parameters);
         
@@ -219,40 +189,40 @@ public class ServiceGemini {
     private Map<String, Object> criarToolAgendarConsulta() {
         Map<String, Object> function = new HashMap<>();
         function.put("name", "agendarConsulta");
-        function.put("description", "Agenda uma consulta para um paciente com um médico");
+        function.put("description", "Agenda uma consulta para um animal, registrando o veterinario responsavel e o dono do animal");
         
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("type", "object");
         
         Map<String, Object> properties = new HashMap<>();
         
-        Map<String, Object> pacienteIdProp = new HashMap<>();
-        pacienteIdProp.put("type", "integer");
-        pacienteIdProp.put("description", "ID do paciente");
-        properties.put("pacienteId", pacienteIdProp);
+        Map<String, Object> nroAnimalProp = new HashMap<>();
+        nroAnimalProp.put("type", "integer");
+        nroAnimalProp.put("description", "ID do animal que será atendido (número de indentificação)");
+        properties.put("nroAnimal", nroAnimalProp);
         
-        Map<String, Object> medicoIdProp = new HashMap<>();
-        medicoIdProp.put("type", "integer");
-        medicoIdProp.put("description", "ID do médico");
-        properties.put("medicoId", medicoIdProp);
+        Map<String, Object> nroVeterinarioProp = new HashMap<>();
+        nroVeterinarioProp.put("type", "integer");
+        nroVeterinarioProp.put("description", "ID do veterinário responsável pelo atendimento (número de indentificação)");
+        properties.put("nroVeterinario", nroVeterinarioProp);
         
         Map<String, Object> dataProp = new HashMap<>();
         dataProp.put("type", "string");
-        dataProp.put("description", "Data da consulta no formato YYYY-MM-DD");
+        dataProp.put("description", "Data do atendimento no formato YYYY-MM-DD");
         properties.put("data", dataProp);
         
         Map<String, Object> horarioProp = new HashMap<>();
         horarioProp.put("type", "string");
-        horarioProp.put("description", "Horário da consulta (ex: 14:30)");
+        horarioProp.put("description", "Horário do atendimento no formato HH:mm:ss)");
         properties.put("horario", horarioProp);
         
-        Map<String, Object> especialidadeProp = new HashMap<>();
-        especialidadeProp.put("type", "string");
-        especialidadeProp.put("description", "Especialidade médica (ex: Cardiologia)");
-        properties.put("especialidade", especialidadeProp);
+        Map<String, Object> nroTipoAtendimentoProp = new HashMap<>();
+        nroTipoAtendimentoProp.put("type", "string");
+        nroTipoAtendimentoProp.put("description", "Numero do tipo de atendimento, 1 para consulta e 2 para vacinação");
+        properties.put("nroTipoAtendimento", nroTipoAtendimentoProp);
         
         parameters.put("properties", properties);
-        List<String> required = Arrays.asList("pacienteId", "data", "horario", "especialidade");
+        List<String> required = Arrays.asList("nroAnimal", "data", "horario", "nroVeterinario");
         parameters.put("required", required);
         
         function.put("parameters", parameters);
@@ -266,54 +236,51 @@ public class ServiceGemini {
     private Map<String, Object> criarToolVerificarHorarios() {
         Map<String, Object> function = new HashMap<>();
         function.put("name", "verificarHorarios");
-        function.put("description", "Verifica horários disponíveis para uma especialidade em uma data");
+        function.put("description", "Verifica horários disponíveis de um veterinário");
         
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("type", "object");
         
         Map<String, Object> properties = new HashMap<>();
         
-        Map<String, Object> especialidadeProp = new HashMap<>();
-        especialidadeProp.put("type", "string");
-        especialidadeProp.put("description", "Especialidade médica (ex: Dermatologia)");
-        properties.put("especialidade", especialidadeProp);
-        
-        Map<String, Object> dataProp = new HashMap<>();
-        dataProp.put("type", "string");
-        dataProp.put("description", "Data para verificar no formato YYYY-MM-DD");
-        properties.put("data", dataProp);
+        Map<String, Object> nroVeterinarioProp = new HashMap<>();
+        nroVeterinarioProp.put("type", "integer");
+        nroVeterinarioProp.put("description", "ID do veterinario que terá seus horários consultados (número de indentificação)");
+        properties.put("nroVeterinario", nroVeterinarioProp);
         
         parameters.put("properties", properties);
-        List<String> required = Arrays.asList("especialidade", "data");
-        parameters.put("required", required);
-        
         function.put("parameters", parameters);
         
         return function;
     }
     
     /**
-     * 🔧 TOOL 4: Buscar exame
+     * 🔧 TOOL 4: Buscar Atendimento
      */
-    private Map<String, Object> criarToolBuscarExame() {
+    private Map<String, Object> criarToolBuscarAtendimento() {
         Map<String, Object> function = new HashMap<>();
-        function.put("name", "buscarExame");
-        function.put("description", "Busca informações sobre um exame médico");
+        function.put("name", "buscarAtendimento");
+        function.put("description", "Busca informações sobre um Atendimento médico");
         
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("type", "object");
         
         Map<String, Object> properties = new HashMap<>();
         
-        Map<String, Object> nomeExameProp = new HashMap<>();
-        nomeExameProp.put("type", "string");
-        nomeExameProp.put("description", "Nome do exame (ex: Hemograma)");
-        properties.put("nomeExame", nomeExameProp);
+        Map<String, Object> nroTipoAtendimentoProp = new HashMap<>();
+        nroTipoAtendimentoProp.put("type", "integer");
+        nroTipoAtendimentoProp.put("description", "ID do tipo de atendimento (número de indentificação)");
+        properties.put("nroTipoAtendimento", nroTipoAtendimentoProp);
         
-        Map<String, Object> codigoProp = new HashMap<>();
-        codigoProp.put("type", "string");
-        codigoProp.put("description", "Código do exame (ex: EXM-123)");
-        properties.put("codigo", codigoProp);
+        Map<String, Object> nomeClienteProp = new HashMap<>();
+        nomeClienteProp.put("type", "string");
+        nomeClienteProp.put("description", "nome do cliente(Dono do animal)");
+        properties.put("nomeCliente", nomeClienteProp);
+
+        Map<String, Object> nroAnimalProp = new HashMap<>();
+        nroAnimalProp.put("type", "integer");
+        nroAnimalProp.put("description", "ID do animal no sistema (número de indentificação)");
+        properties.put("nroAnimal", nroAnimalProp);
         
         parameters.put("properties", properties);
         function.put("parameters", parameters);
@@ -322,192 +289,314 @@ public class ServiceGemini {
     }
     
     /**
-     * 🔥 PROCESSA A RESPOSTA E EXECUTA AS FUNÇÕES
+     *  PROCESSA A RESPOSTA E EXECUTA AS FUNÇÕES
      */
-    private GeminiSaidaDTO processarResposta(String responseBody, long inicio, GeminiEntradaDTO entradaOriginal) {
-        try {
-            JsonNode root = objectMapper.readTree(responseBody);
-            JsonNode candidates = root.path("candidates");
-            
-            if (candidates.isArray() && candidates.size() > 0) {
-                JsonNode firstCandidate = candidates.get(0);
-                JsonNode content = firstCandidate.path("content");
-                JsonNode parts = content.path("parts");
-                
-                if (parts.isArray() && parts.size() > 0) {
-                    JsonNode firstPart = parts.get(0);
-                    JsonNode functionCall = firstPart.path("functionCall");
-                    
-                    // 🔥 SE A IA QUER CHAMAR UMA FUNÇÃO
-                    if (!functionCall.isMissingNode()) {
-                        String nomeFuncao = functionCall.path("name").asText();
-                        JsonNode args = functionCall.path("args");
-                        Map<String, Object> argumentos = objectMapper.convertValue(args, Map.class);
-                        
-                        System.out.println("🤖 IA quer executar: " + nomeFuncao);
-                        System.out.println("📝 Com argumentos: " + argumentos);
-                        
-                        // 🔥 EXECUTA A FUNÇÃO (CHAMA ENDPOINT INTERNO)
-                        Object resultado = executarFuncao(nomeFuncao, argumentos);
-                        
-                        System.out.println("✅ Resultado da função: " + resultado);
-                        
-                        // 🔥 ENVIA RESULTADO DE VOLTA PARA IA
-                        String respostaFinal = enviarResultadoParaIA(
-                            nomeFuncao, 
-                            argumentos, 
-                            resultado, 
-                            entradaOriginal
-                        );
-                        
-                        GeminiSaidaDTO saida = new GeminiSaidaDTO();
-                        saida.setResposta(respostaFinal);
-                        saida.setModeloUsado(root.path("modelVersion").asText("gemini-pro"));
-                        saida.setTempoProcessamento(System.currentTimeMillis() - inicio);
-                        saida.setAcaoRealizada(nomeFuncao);
-                        
-                        return saida;
-                    }
-                    
-                    // Se não tem função, é resposta normal
-                    String texto = firstPart.path("text").asText();
-                    GeminiSaidaDTO saida = new GeminiSaidaDTO();
-                    saida.setResposta(texto);
-                    saida.setModeloUsado(root.path("modelVersion").asText("gemini-pro"));
-                    saida.setTempoProcessamento(System.currentTimeMillis() - inicio);
-                    saida.setAcaoRealizada("nenhuma");
-                    
-                    return saida;
-                }
-            }
-            
-            throw new RuntimeException("Resposta inválida do Gemini");
-            
-        } catch (Exception e) {
-            throw new RuntimeException("Erro ao processar resposta: " + e.getMessage());
-        }
-    }
-    
     /**
-     * 🔥 EXECUTA A FUNÇÃO - AQUI VOCÊ CHAMA SEUS ENDPOINTS INTERNOS
-     */
-    private Object executarFuncao(String nomeFuncao, Map<String, Object> argumentos) {
-        switch (nomeFuncao) {
-            case "buscarPaciente":
-                return executarBuscarPaciente(argumentos);
-                
-            case "agendarConsulta":
-                return executarAgendarConsulta(argumentos);
-                
-            case "verificarHorarios":
-                return executarVerificarHorarios(argumentos);
-                
-            case "buscarExame":
-                return executarBuscarExame(argumentos);
-                
-            default:
-                return Map.of("erro", "Função desconhecida: " + nomeFuncao);
+ * Processa a resposta do Gemini, identificando se há chamada de função.
+ * 
+ * @param responseBody Resposta JSON do Gemini
+ * @param inicio Timestamp do início
+ * @param entradaOriginal Mensagem original do usuário
+ * @return DTO com a resposta final
+ */
+private GeminiSaidaDTO processarResposta(
+        String responseBody, 
+        long inicio, 
+        GeminiEntradaDTO entradaOriginal) {
+    
+    try {
+        JsonNode root = objectMapper.readTree(responseBody);
+        JsonNode firstPart = getFirstPart(root);
+        
+        // Verifica se é uma chamada de função
+        JsonNode functionCall = firstPart.path("functionCall");
+        
+        if (functionCall.isMissingNode()) {
+            // Resposta direta
+            return criarSaidaDireta(root, firstPart, inicio);
+        } else {
+            // Resposta com função
+            return processarComFuncao(root, functionCall, inicio, entradaOriginal);
         }
+        
+    } catch (Exception e) {
+        throw new RuntimeException("Erro ao processar resposta: " + e.getMessage(), e);
     }
-    
-    /**
-     * 🔥 IMPLEMENTAÇÕES DAS FUNÇÕES - CHAMAM OS ENDPOINTS DA SUA API
-     */
-    
-    private Object executarBuscarPaciente(Map<String, Object> args) {
-        try {
-            // 🔥 AQUI VOCÊ CHAMA SEU ENDPOINT REAL
-            String url = "http://localhost:8080/api/pacientes/buscar";
-            
-            List<String> params = new ArrayList<>();
-            if (args.containsKey("id")) {
-                url += "/" + args.get("id");
-            } else if (args.containsKey("cpf")) {
-                url += "?cpf=" + args.get("cpf");
-            } else if (args.containsKey("nome")) {
-                url += "?nome=" + args.get("nome");
-            }
-            
-            RestTemplate restTemplate = new RestTemplate();
-            ResponseEntity<Object> response = restTemplate.getForEntity(url, Object.class);
-            
-            return response.getBody();
-            
-        } catch (Exception e) {
-            return Map.of("erro", "Erro ao buscar paciente: " + e.getMessage());
-        }
-    }
-    
-    private Object executarAgendarConsulta(Map<String, Object> args) {
-        try {
-            // 🔥 CHAMA SEU ENDPOINT DE AGENDAMENTO
-            String url = "http://localhost:8080/api/consultas";
+}
 
-            ServiceClientes serviceCliente = new ServiceClientes();
-            ServiceVeterinario serviceVeterinario = new ServiceVeterinario();
-            
-            Map<String, Object> body = new HashMap<>();
-            body.put("pacienteId", args.get("pacienteId"));
-            body.put("medicoId", args.get("medicoId"));
-            body.put("data", args.get("data"));
-            body.put("horario", args.get("horario"));
-            body.put("especialidade", args.get("especialidade"));
-            
-            RestTemplate restTemplate = new RestTemplate();
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
-            
-            ResponseEntity<Object> response = restTemplate.postForEntity(url, request, Object.class);
-            
-            return response.getBody();
-            
-        } catch (Exception e) {
-            return Map.of("erro", "Erro ao agendar consulta: " + e.getMessage());
-        }
+/**
+ * Extrai a primeira parte da resposta.
+ */
+private JsonNode getFirstPart(JsonNode root) {
+    JsonNode candidates = root.path("candidates");
+    
+    if (!candidates.isArray() || candidates.size() == 0) {
+        throw new RuntimeException("Nenhum candidato na resposta");
     }
     
-    private Object executarVerificarHorarios(Map<String, Object> args) {
-        try {
-            // 🔥 CHAMA SEU ENDPOINT DE HORÁRIOS
-            String especialidade = (String) args.get("especialidade");
-            String data = (String) args.get("data");
+    JsonNode content = candidates.get(0).path("content");
+    JsonNode parts = content.path("parts");
+    
+    if (!parts.isArray() || parts.size() == 0) {
+        throw new RuntimeException("Nenhuma parte na resposta");
+    }
+    
+    return parts.get(0);
+}
+
+/**
+ * Cria resposta para caso sem função.
+ */
+private GeminiSaidaDTO criarSaidaDireta(JsonNode root, JsonNode firstPart, long inicio) {
+    GeminiSaidaDTO saida = new GeminiSaidaDTO();
+    saida.setResposta(firstPart.path("text").asText());
+    saida.setModeloUsado(root.path("modelVersion").asText("gemini-pro"));
+    saida.setTempoProcessamento(System.currentTimeMillis() - inicio);
+    saida.setAcaoRealizada("nenhuma");
+    return saida;
+}
+
+/**
+ * Processa resposta com chamada de função.
+ */
+private GeminiSaidaDTO processarComFuncao(
+        JsonNode root, 
+        JsonNode functionCall, 
+        long inicio, 
+        GeminiEntradaDTO entradaOriginal) {
+    
+    // Extrai dados da função
+    String nomeFuncao = functionCall.path("name").asText();
+    Map<String, Object> argumentos = objectMapper.convertValue(
+        functionCall.path("args"), 
+        Map.class
+    );
+    
+    System.out.println("Executando: " + nomeFuncao + " com " + argumentos);
+    
+    // Executa e envia resultado
+    Object resultado = executarFuncao(nomeFuncao, argumentos);
+    String respostaFinal = enviarResultadoParaIA(nomeFuncao, argumentos, resultado, entradaOriginal);
+    
+    // Monta resposta
+    GeminiSaidaDTO saida = new GeminiSaidaDTO();
+    saida.setResposta(respostaFinal);
+    saida.setModeloUsado(root.path("modelVersion").asText("gemini-pro"));
+    saida.setTempoProcessamento(System.currentTimeMillis() - inicio);
+    saida.setAcaoRealizada(nomeFuncao);
+    
+    return saida;
+}
+    
+    /**
+ * Executa a função solicitada pela IA.
+ * 
+ * <p>Este método atua como um dispatcher que direciona a chamada para a
+ * implementação específica de cada função baseado no nome recebido.</p>
+ * 
+ * @param nomeFuncao Nome da função a ser executada
+ * @param argumentos Argumentos da função (extraídos do functionCall do Gemini)
+ * @return Resultado da execução da função (pode ser Map, List, ou objeto)
+ */
+private Object executarFuncao(String nomeFuncao, Map<String, Object> argumentos) {
+    switch (nomeFuncao) {
+        case "buscarCliente":
+            return executarBuscarCliente(argumentos);
             
-            String url = String.format(
-                "http://localhost:8080/api/horarios?especialidade=%s&data=%s",
-                especialidade, data
+        case "agendarConsulta":
+            return executarAgendarConsulta(argumentos);
+            
+        case "verificarHorarios":
+            return executarVerificarHorarios(argumentos);
+            
+        case "buscarAtendimento":
+            return executarBuscarAtendimento(argumentos);
+            
+        default:
+            return Map.of(
+                "erro", "Função desconhecida: " + nomeFuncao,
+                "mensagem", "A função solicitada não está disponível no sistema"
             );
-            
-            RestTemplate restTemplate = new RestTemplate();
-            ResponseEntity<Object> response = restTemplate.getForEntity(url, Object.class);
-            
-            return response.getBody();
-            
-        } catch (Exception e) {
-            return Map.of("erro", "Erro ao verificar horários: " + e.getMessage());
-        }
     }
-    
-    private Object executarBuscarExame(Map<String, Object> args) {
-        try {
-            // 🔥 CHAMA SEU ENDPOINT DE EXAMES
-            String url = "http://localhost:8080/api/exames";
-            
-            if (args.containsKey("codigo")) {
-                url += "/" + args.get("codigo");
-            } else if (args.containsKey("nomeExame")) {
-                url += "?nome=" + args.get("nomeExame");
-            }
-            
-            RestTemplate restTemplate = new RestTemplate();
-            ResponseEntity<Object> response = restTemplate.getForEntity(url, Object.class);
-            
-            return response.getBody();
-            
-        } catch (Exception e) {
-            return Map.of("erro", "Erro ao buscar exame: " + e.getMessage());
+}
+
+// ================================================================
+// IMPLEMENTAÇÕES DAS FUNÇÕES
+// ================================================================
+
+/**
+ * Busca um cliente pelo ID, CPF ou nome.
+ * 
+ * <p>Prioridade de busca: ID > CPF > Nome</p>
+ * 
+ * @param args Map com os argumentos da busca
+ * @return Dados do cliente encontrado ou mensagem de erro
+ */
+private Object executarBuscarCliente(Map<String, Object> args) {
+    try {
+        String url = API_URL + "/clientes";
+        
+        // Constrói a URL baseado no critério informado
+        if (args.containsKey("nroCliente")) {
+            url += "?nroCliente=" + args.get("nroCliente");
+        } else if (args.containsKey("nomeCliente")) {
+            url += "?nomeCliente=" + args.get("nomeCliente");
         }
+        
+        RestTemplate restTemplate = new RestTemplate();
+        ResponseEntity<Object> response = restTemplate.getForEntity(url, Object.class);
+        
+        return response.getBody();
+        
+    } catch (Exception e) {
+        return Map.of(
+            "erro", "ERRO_BUSCAR_CLIENTE",
+            "mensagem", "Erro ao buscar cliente: " + e.getMessage()
+        );
     }
+}
+
+/**
+ * Agenda uma consulta para um cliente.
+ * 
+ * <p>Validações realizadas pelo endpoint de agendamento:</p>
+ * <ul>
+ *   <li>Cliente existe</li>
+ *   <li>Médico existe</li>
+ *   <li>Horário disponível</li>
+ * </ul>
+ * 
+ * @param args Map com os dados do agendamento
+ * @return Dados da consulta agendada ou mensagem de erro
+ */
+private Object executarAgendarConsulta(Map<String, Object> args) {
+    try {
+        // Verifica se os dados obrigatórios foram enviados
+        if (!args.containsKey("nroAnimal")||!args.containsKey("data")) {
+            return Map.of(
+                "erro", "NRO_ANIMAL_NAO_INFORMADO",
+                "mensagem", "Informe o ID do animal para agendar a consulta"
+            );
+        }
+        
+        if (!args.containsKey("data") || !args.containsKey("horario")) {
+            return Map.of(
+                "erro", "DADOS_INCOMPLETOS",
+                "mensagem", "Informe data e horário para o agendamento"
+            );
+        }
+
+        if (!args.containsKey("nroVeterinario")) {
+            return Map.of(
+                "erro", "NRO_VETERINARIO_NAO_INFORMADO",
+                "mensagem", "Informe o ID do veterinario para agendar a consulta"
+            );
+        }
+        
+        String url = API_URL + "/consultas";
+        
+        Map<String, Object> body = new HashMap<>();
+        body.put("nroAnimal", args.get("nroAnimal"));
+        body.put("nroVeterinario", args.get("nroVeterinario"));
+        body.put("data", args.get("data"));
+        body.put("horario", args.get("horario"));
+        body.put("nroTipoAtendimento", args.get("nroTipoAtendimento"));
+        
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
+        
+        ResponseEntity<Object> response = restTemplate.postForEntity(url, request, Object.class);
+        
+        return response.getBody();
+        
+    } catch (Exception e) {
+        return Map.of(
+            "erro", "ERRO_AGENDAR_CONSULTA",
+            "mensagem", "Erro ao agendar consulta: " + e.getMessage()
+        );
+    }
+}
+
+/**
+ * Verifica horários disponíveis para uma especialidade em uma data específica.
+ * 
+ * @param args Map com especialidade e data
+ * @return Lista de horários disponíveis ou mensagem de erro
+ */
+private Object executarVerificarHorarios(Map<String, Object> args) {
+    try {
+        String especialidade = (String) args.get("especialidade");
+        String data = (String) args.get("data");
+        
+        if (especialidade == null || especialidade.trim().isEmpty()) {
+            return Map.of(
+                "erro", "ESPECIALIDADE_NAO_INFORMADA",
+                "mensagem", "Informe a especialidade para verificar horários"
+            );
+        }
+        
+        if (data == null || data.trim().isEmpty()) {
+            return Map.of(
+                "erro", "DATA_NAO_INFORMADA",
+                "mensagem", "Informe a data para verificar horários"
+            );
+        }
+        
+        String url = String.format(
+            API_URL + "/horarios?especialidade=%s&data=%s",
+            especialidade, data
+        );
+        
+        RestTemplate restTemplate = new RestTemplate();
+        ResponseEntity<Object> response = restTemplate.getForEntity(url, Object.class);
+        
+        return response.getBody();
+        
+    } catch (Exception e) {
+        return Map.of(
+            "erro", "ERRO_VERIFICAR_HORARIOS",
+            "mensagem", "Erro ao verificar horários: " + e.getMessage()
+        );
+    }
+}
+
+/**
+ * Busca informações de um atendimento pelo código ou nome.
+ * 
+ * <p>Prioridade: código > nome</p>
+ * 
+ * @param args Map com código ou nome do atendimento
+ * @return Dados do atendimento ou mensagem de erro
+ */
+private Object executarBuscarAtendimento(Map<String, Object> args) {
+    try {
+        String url = API_URL + "/atendimentos";
+        
+        if (args.containsKey("codigo")) {
+            url += "/" + args.get("codigo");
+        } else if (args.containsKey("nome")) {
+            url += "?nome=" + args.get("nome");
+        } else {
+            return Map.of(
+                "erro", "CRITERIO_NAO_INFORMADO",
+                "mensagem", "Informe código ou nome para buscar o atendimento"
+            );
+        }
+        
+        RestTemplate restTemplate = new RestTemplate();
+        ResponseEntity<Object> response = restTemplate.getForEntity(url, Object.class);
+        
+        return response.getBody();
+        
+    } catch (Exception e) {
+        return Map.of(
+            "erro", "ERRO_BUSCAR_ATENDIMENTO",
+            "mensagem", "Erro ao buscar atendimento: " + e.getMessage()
+        );
+    }
+}
     
     /**
      * 🔥 ENVIA O RESULTADO DE VOLTA PARA A IA
