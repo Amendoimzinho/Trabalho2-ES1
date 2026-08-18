@@ -493,7 +493,7 @@ private Object executarAgendarConsulta(Map<String, Object> args) {
             );
         }
         
-        String url = API_URL + "/consultas";
+        String url = API_URL + "/atendimentos";
         
         Map<String, Object> body = new HashMap<>();
         body.put("nroAnimal", args.get("nroAnimal"));
@@ -513,8 +513,8 @@ private Object executarAgendarConsulta(Map<String, Object> args) {
         
     } catch (Exception e) {
         return Map.of(
-            "erro", "ERRO_AGENDAR_CONSULTA",
-            "mensagem", "Erro ao agendar consulta: " + e.getMessage()
+            "erro", "ERRO_AGENDAR_Atendimento",
+            "mensagem", "Erro ao agendar atendimento: " + e.getMessage()
         );
     }
 }
@@ -528,19 +528,12 @@ private Object executarAgendarConsulta(Map<String, Object> args) {
 private Object executarVerificarHorarios(Map<String, Object> args) {
     try {
         String especialidade = (String) args.get("especialidade");
-        String data = (String) args.get("data");
+        String nroVeterinario = (String) args.get("nroVeterinario");
         
-        if (especialidade == null || especialidade.trim().isEmpty()) {
+        if (nroVeterinario == null) {
             return Map.of(
-                "erro", "ESPECIALIDADE_NAO_INFORMADA",
-                "mensagem", "Informe a especialidade para verificar horários"
-            );
-        }
-        
-        if (data == null || data.trim().isEmpty()) {
-            return Map.of(
-                "erro", "DATA_NAO_INFORMADA",
-                "mensagem", "Informe a data para verificar horários"
+                "erro", "NRO_VETERINARIO_NAO_INFORMADO",
+                "mensagem", "Informe o ID do veterinário para verificar os horários"
             );
         }
         
