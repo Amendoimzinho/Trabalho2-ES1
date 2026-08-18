@@ -4,6 +4,7 @@ import java.util.List;
 import java.time.LocalDateTime;
 
 public class Veterinario {
+    public Integer nroVeterinario;
     public String nome;
     public String CRMV;
     public String telefone;
