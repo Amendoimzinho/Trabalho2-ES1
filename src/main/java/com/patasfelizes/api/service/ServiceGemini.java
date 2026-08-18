@@ -493,7 +493,7 @@
 //             );
 //         }
         
-//         String url = API_URL + "/consultas";
+        String url = API_URL + "/consultas";
         
 //         Map<String, Object> body = new HashMap<>();
 //         body.put("nroAnimal", args.get("nroAnimal"));
@@ -511,43 +511,43 @@
         
 //         return response.getBody();
         
-//     } catch (Exception e) {
-//         return Map.of(
-//             "erro", "ERRO_AGENDAR_CONSULTA",
-//             "mensagem", "Erro ao agendar consulta: " + e.getMessage()
-//         );
-//     }
-// }
+    } catch (Exception e) {
+        return Map.of(
+            "erro", "ERRO_AGENDAR_CONSULTA",
+            "mensagem", "Erro ao agendar consulta: " + e.getMessage()
+        );
+    }
+}
 
-// /**
-//  * Verifica horários disponíveis para uma especialidade em uma data específica.
-//  * 
-//  * @param args Map com especialidade e data
-//  * @return Lista de horários disponíveis ou mensagem de erro
-//  */
-// private Object executarVerificarHorarios(Map<String, Object> args) {
-//     try {
-//         String especialidade = (String) args.get("especialidade");
-//         String data = (String) args.get("data");
+/**
+ * Verifica horários disponíveis para uma especialidade em uma data específica.
+ * 
+ * @param args Map com especialidade e data
+ * @return Lista de horários disponíveis ou mensagem de erro
+ */
+private Object executarVerificarHorarios(Map<String, Object> args) {
+    try {
+        String especialidade = (String) args.get("especialidade");
+        String data = (String) args.get("data");
         
-//         if (especialidade == null || especialidade.trim().isEmpty()) {
-//             return Map.of(
-//                 "erro", "ESPECIALIDADE_NAO_INFORMADA",
-//                 "mensagem", "Informe a especialidade para verificar horários"
-//             );
-//         }
+        if (especialidade == null || especialidade.trim().isEmpty()) {
+            return Map.of(
+                "erro", "ESPECIALIDADE_NAO_INFORMADA",
+                "mensagem", "Informe a especialidade para verificar horários"
+            );
+        }
         
-//         if (data == null || data.trim().isEmpty()) {
-//             return Map.of(
-//                 "erro", "DATA_NAO_INFORMADA",
-//                 "mensagem", "Informe a data para verificar horários"
-//             );
-//         }
+        if (data == null || data.trim().isEmpty()) {
+            return Map.of(
+                "erro", "DATA_NAO_INFORMADA",
+                "mensagem", "Informe a data para verificar horários"
+            );
+        }
         
-//         String url = String.format(
-//             API_URL + "/horarios?especialidade=%s&data=%s",
-//             especialidade, data
-//         );
+        String url = String.format(
+            API_URL + "/horarios?especialidade=%s&data=%s",
+            especialidade, data
+        );
         
 //         RestTemplate restTemplate = new RestTemplate();
 //         ResponseEntity<Object> response = restTemplate.getForEntity(url, Object.class);
@@ -574,16 +574,16 @@
 //     try {
 //         String url = API_URL + "/atendimentos";
         
-//         if (args.containsKey("codigo")) {
-//             url += "/" + args.get("codigo");
-//         } else if (args.containsKey("nome")) {
-//             url += "?nome=" + args.get("nome");
-//         } else {
-//             return Map.of(
-//                 "erro", "CRITERIO_NAO_INFORMADO",
-//                 "mensagem", "Informe código ou nome para buscar o atendimento"
-//             );
-//         }
+        if (args.containsKey("codigo")) {
+            url += "/" + args.get("codigo");
+        } else if (args.containsKey("nome")) {
+            url += "?nome=" + args.get("nome");
+        } else {
+            return Map.of(
+                "erro", "CRITERIO_NAO_INFORMADO",
+                "mensagem", "Informe código ou nome para buscar o atendimento"
+            );
+        }
         
 //         RestTemplate restTemplate = new RestTemplate();
 //         ResponseEntity<Object> response = restTemplate.getForEntity(url, Object.class);
@@ -598,94 +598,94 @@
 //     }
 // }
     
-//     /**
-//      * 🔥 ENVIA O RESULTADO DE VOLTA PARA A IA
-//      */
-//     private String enviarResultadoParaIA(String nomeFuncao, Map<String, Object> argumentos, 
-//                                          Object resultado, GeminiEntradaDTO entradaOriginal) {
-//         try {
-//             String url = GEMINI_URL + "?key=" + apiKey;
+    /**
+     * 🔥 ENVIA O RESULTADO DE VOLTA PARA A IA
+     */
+    private String enviarResultadoParaIA(String nomeFuncao, Map<String, Object> argumentos, 
+                                         Object resultado, GeminiEntradaDTO entradaOriginal) {
+        try {
+            String url = GEMINI_URL + "?key=" + apiKey;
             
-//             // Monta a conversa completa
-//             List<Map<String, Object>> contents = new ArrayList<>();
+            // Monta a conversa completa
+            List<Map<String, Object>> contents = new ArrayList<>();
             
-//             // 1. System prompt
-//             Map<String, Object> systemContent = new HashMap<>();
-//             List<Map<String, String>> systemParts = new ArrayList<>();
-//             Map<String, String> systemPart = new HashMap<>();
-//             systemPart.put("text", SYSTEM_PROMPT);
-//             systemParts.add(systemPart);
-//             systemContent.put("parts", systemParts);
-//             systemContent.put("role", "user");
-//             contents.add(systemContent);
+            // 1. System prompt
+            Map<String, Object> systemContent = new HashMap<>();
+            List<Map<String, String>> systemParts = new ArrayList<>();
+            Map<String, String> systemPart = new HashMap<>();
+            systemPart.put("text", SYSTEM_PROMPT);
+            systemParts.add(systemPart);
+            systemContent.put("parts", systemParts);
+            systemContent.put("role", "user");
+            contents.add(systemContent);
             
-//             // 2. Mensagem do usuário
-//             Map<String, Object> userContent = new HashMap<>();
-//             List<Map<String, String>> userParts = new ArrayList<>();
-//             Map<String, String> userPart = new HashMap<>();
-//             userPart.put("text", entradaOriginal.getMensagem());
-//             userParts.add(userPart);
-//             userContent.put("parts", userParts);
-//             userContent.put("role", "user");
-//             contents.add(userContent);
+            // 2. Mensagem do usuário
+            Map<String, Object> userContent = new HashMap<>();
+            List<Map<String, String>> userParts = new ArrayList<>();
+            Map<String, String> userPart = new HashMap<>();
+            userPart.put("text", entradaOriginal.getMensagem());
+            userParts.add(userPart);
+            userContent.put("parts", userParts);
+            userContent.put("role", "user");
+            contents.add(userContent);
             
-//             // 3. Resposta da IA (com function call)
-//             Map<String, Object> modelContent = new HashMap<>();
-//             List<Map<String, Object>> modelParts = new ArrayList<>();
-//             Map<String, Object> modelPart = new HashMap<>();
-//             Map<String, Object> functionCall = new HashMap<>();
-//             functionCall.put("name", nomeFuncao);
-//             functionCall.put("args", argumentos);
-//             modelPart.put("functionCall", functionCall);
-//             modelParts.add(modelPart);
-//             modelContent.put("parts", modelParts);
-//             modelContent.put("role", "model");
-//             contents.add(modelContent);
+            // 3. Resposta da IA (com function call)
+            Map<String, Object> modelContent = new HashMap<>();
+            List<Map<String, Object>> modelParts = new ArrayList<>();
+            Map<String, Object> modelPart = new HashMap<>();
+            Map<String, Object> functionCall = new HashMap<>();
+            functionCall.put("name", nomeFuncao);
+            functionCall.put("args", argumentos);
+            modelPart.put("functionCall", functionCall);
+            modelParts.add(modelPart);
+            modelContent.put("parts", modelParts);
+            modelContent.put("role", "model");
+            contents.add(modelContent);
             
-//             // 4. Resultado da função
-//             Map<String, Object> functionContent = new HashMap<>();
-//             List<Map<String, Object>> functionParts = new ArrayList<>();
-//             Map<String, Object> functionPart = new HashMap<>();
-//             Map<String, Object> functionResponse = new HashMap<>();
-//             functionResponse.put("name", nomeFuncao);
-//             functionResponse.put("response", resultado);
-//             functionPart.put("functionResponse", functionResponse);
-//             functionParts.add(functionPart);
-//             functionContent.put("parts", functionParts);
-//             functionContent.put("role", "user");
-//             contents.add(functionContent);
+            // 4. Resultado da função
+            Map<String, Object> functionContent = new HashMap<>();
+            List<Map<String, Object>> functionParts = new ArrayList<>();
+            Map<String, Object> functionPart = new HashMap<>();
+            Map<String, Object> functionResponse = new HashMap<>();
+            functionResponse.put("name", nomeFuncao);
+            functionResponse.put("response", resultado);
+            functionPart.put("functionResponse", functionResponse);
+            functionParts.add(functionPart);
+            functionContent.put("parts", functionParts);
+            functionContent.put("role", "user");
+            contents.add(functionContent);
             
-//             Map<String, Object> body = new HashMap<>();
-//             body.put("contents", contents);
+            Map<String, Object> body = new HashMap<>();
+            body.put("contents", contents);
             
-//             // 🔥 FAZ A CHAMADA FINAL
-//             HttpHeaders headers = new HttpHeaders();
-//             headers.setContentType(MediaType.APPLICATION_JSON);
-//             HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
+            // 🔥 FAZ A CHAMADA FINAL
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
             
-//             ResponseEntity<String> response = restTemplate.exchange(
-//                 url,
-//                 HttpMethod.POST,
-//                 request,
-//                 String.class
-//             );
+            ResponseEntity<String> response = restTemplate.exchange(
+                url,
+                HttpMethod.POST,
+                request,
+                String.class
+            );
             
-//             // Pega a resposta final
-//             JsonNode root = objectMapper.readTree(response.getBody());
-//             JsonNode candidates = root.path("candidates");
+            // Pega a resposta final
+            JsonNode root = objectMapper.readTree(response.getBody());
+            JsonNode candidates = root.path("candidates");
             
-//             if (candidates.isArray() && candidates.size() > 0) {
-//                 JsonNode content = candidates.get(0).path("content");
-//                 JsonNode parts = content.path("parts");
-//                 if (parts.isArray() && parts.size() > 0) {
-//                     return parts.get(0).path("text").asText("Resposta gerada com sucesso!");
-//                 }
-//             }
+            if (candidates.isArray() && candidates.size() > 0) {
+                JsonNode content = candidates.get(0).path("content");
+                JsonNode parts = content.path("parts");
+                if (parts.isArray() && parts.size() > 0) {
+                    return parts.get(0).path("text").asText("Resposta gerada com sucesso!");
+                }
+            }
             
-//             return "Operação realizada com sucesso! " + resultado;
+            return "Operação realizada com sucesso! " + resultado;
             
-//         } catch (Exception e) {
-//             return "Erro ao processar resultado: " + e.getMessage() + ". Dados: " + resultado;
-//         }
-//     }
-// }
+        } catch (Exception e) {
+            return "Erro ao processar resultado: " + e.getMessage() + ". Dados: " + resultado;
+        }
+    }
+}
