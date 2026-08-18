@@ -48,7 +48,7 @@ public class ServiceVeterinario {
         List<LocalDateTime> horariosOcupados = atendimentosMarcados.stream()
                 .map(EntityAtendimento::getInicioAtendimento)
                 .collect(Collectors.toList());
-                
+
         todosHorariosPossiveis.removeAll(horariosOcupados);
 
         return todosHorariosPossiveis;
