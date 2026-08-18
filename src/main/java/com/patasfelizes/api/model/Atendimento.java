@@ -1,7 +1,7 @@
 package com.patasfelizes.api.model;
 
 public class Atendimento {
-    public String tipoAtendimento;
+    public Integer nroTipoAtendimento;
     public String nomeAnimal;
     public Integer nroAnimal;
     public String nomeVeterinario;

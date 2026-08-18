@@ -41,7 +41,8 @@ public class ServiceAtendimento {
                 .orElseThrow(() -> new RuntimeException("Animal não encontrado."));
         EntityVeterinario veterinario = veterinarioRepository.findById(vo.nroVeterinario)
                 .orElseThrow(() -> new RuntimeException("Veterinário não encontrado."));
-        EntityTipoAtendimento tipo = tipoAtendimentoRepository.findById(1)
+
+        EntityTipoAtendimento tipo = tipoAtendimentoRepository.findById(vo.nroTipoAtendimento)
                 .orElseThrow(() -> new RuntimeException("Tipo de Atendimento base não encontrado."));
 
         EntityAtendimento atendimento = new EntityAtendimento();
@@ -86,7 +87,7 @@ public class ServiceAtendimento {
         vo.nomeAnimal = entidade.getAnimal().getNomeAnimal();
         vo.nroVeterinario = entidade.getVeterinario().getNroVeterinario();
         vo.nomeVeterinario = entidade.getVeterinario().getNomeVeterinario();
-        vo.tipoAtendimento = entidade.getTipoAtendimento().getNomeTipoAtendimento();
+        vo.nroTipoAtendimento = entidade.getTipoAtendimento().getNroTipoAtendimento();
         
         if (entidade.getInicioAtendimento() != null) vo.ini_dataAtendimento = entidade.getInicioAtendimento().toString();
         if (entidade.getFimAtendimento() != null) vo.end_dataAtendimento = entidade.getFimAtendimento().toString();
