@@ -1,23 +1,23 @@
-package com.patasfelizes.api.service;
+// package com.patasfelizes.api.service;
 
-import java.util.List;
+// import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+// import org.springframework.beans.factory.annotation.Autowired;
+// import org.springframework.stereotype.Service;
 
-import com.patasfelizes.api.model.Atendimento;
-import com.patasfelizes.api.repository.DAO;
+// import com.patasfelizes.api.model.Atendimento;
+// import com.patasfelizes.api.repository.DAO;
 
-@Service
-public class ServiceAtendimento {
-    @Autowired
-    private DAO dao;
+// @Service
+// public class ServiceAtendimento {
+//     @Autowired
+//     private DAO dao;
 
-    public List<Atendimento> listarAtendimentos(String nomeCliente, Integer nroAnimal, Integer nroTipoAtendimento) {
-        return null;
-    }
+//     public List<Atendimento> listarAtendimentos(String nomeCliente, Integer nroAnimal, Integer nroTipoAtendimento) {
+//         return null;
+//     }
 
-    public Atendimento criarAtendimento(Atendimento atendimento) {
-        return null;
-    }
-}
+//     public Atendimento criarAtendimento(Atendimento atendimento) {
+//         return null;
+//     }
+// }
