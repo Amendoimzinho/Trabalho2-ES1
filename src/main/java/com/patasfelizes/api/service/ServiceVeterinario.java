@@ -25,23 +25,17 @@ public class ServiceVeterinario {
     @Autowired
     private AtendimentoRepository atendimentoRepository;
 
-    // ==========================================
-    // CASO DE USO: Horários disponíveis
-    // ==========================================
     public List<LocalDateTime> calcularHorariosDisponiveis(Integer nroVeterinario) {
-        // 1. Busca o Veterinário e seus turnos de trabalho
         EntityVeterinario vet = veterinarioRepository.findById(nroVeterinario)
                 .orElseThrow(() -> new RuntimeException("Veterinário não encontrado!"));
 
         List<LocalDateTime> todosHorariosPossiveis = new ArrayList<>();
 
-        // 2. Cria blocos de 1 hora baseados nos intervalos cadastrados na agenda dele
         if (vet.getHorarios() != null) {
             for (EntityHorariosVeterinario turno : vet.getHorarios()) {
                 LocalDateTime horaAtual = turno.getInicioIntervalo();
                 LocalDateTime fimTurno = turno.getFimIntervalo();
 
-                // Vai somando 1 hora até chegar no fim do expediente
                 while (horaAtual.isBefore(fimTurno)) {
                     todosHorariosPossiveis.add(horaAtual);
                     horaAtual = horaAtual.plusHours(1);
@@ -49,15 +43,12 @@ public class ServiceVeterinario {
             }
         }
 
-        // 3. Busca todos os atendimentos já agendados para este veterinário
-        // (Requer a criação de um método findByVeterinario no AtendimentoRepository)
         List<EntityAtendimento> atendimentosMarcados = atendimentoRepository.findByVeterinario(vet);
         
         List<LocalDateTime> horariosOcupados = atendimentosMarcados.stream()
                 .map(EntityAtendimento::getInicioAtendimento)
                 .collect(Collectors.toList());
-
-        // 4. Subtrai os horários ocupados dos horários possíveis
+                
         todosHorariosPossiveis.removeAll(horariosOcupados);
 
         return todosHorariosPossiveis;
