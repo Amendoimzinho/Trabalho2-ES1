@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.patasfelizes.api.entity.EntityAtendimento;
 import com.patasfelizes.api.entity.EntityHorariosVeterinario;
 import com.patasfelizes.api.entity.EntityVeterinario;
+import com.patasfelizes.api.model.Veterinario;
 import com.patasfelizes.api.repository.AtendimentoRepository;
 import com.patasfelizes.api.repository.VeterinarioRepository;
 
@@ -25,6 +26,28 @@ public class ServiceVeterinario {
     @Autowired
     private AtendimentoRepository atendimentoRepository;
 
+    
+    public List<Veterinario> listarVeterinarios(String nomeVeterinario, Integer nroVeterinario) {
+        List<EntityVeterinario> listaEntidades;
+ 
+        if (nroVeterinario != null)
+            listaEntidades = veterinarioRepository.findById(nroVeterinario).stream().toList();
+ 
+        else if (nomeVeterinario != null && !nomeVeterinario.trim().isEmpty())
+            listaEntidades = veterinarioRepository.findByNomeVeterniarioContainingIgnoreCase(nomeVeterinario);
+ 
+        else
+            listaEntidades = veterinarioRepository.findAll();
+ 
+        return listaEntidades.stream().map(this::toVO).collect(Collectors.toList());
+    }
+ 
+    private Veterinario toVO(EntityVeterinario entidade) {
+        Veterinario vo = new Veterinario();
+        vo.nroVeterinario = entidade.getNroVeterinario();
+        vo.nome = entidade.getNomeVeterinario();
+        return vo;
+    }
     public List<LocalDateTime> calcularHorariosDisponiveis(Integer nroVeterinario) {
         EntityVeterinario vet = veterinarioRepository.findById(nroVeterinario)
                 .orElseThrow(() -> new RuntimeException("Veterinário não encontrado!"));

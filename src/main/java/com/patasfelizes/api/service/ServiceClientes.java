@@ -135,9 +135,7 @@ public class ServiceClientes {
         return listaEntidades.stream().map(this::toVO).collect(Collectors.toList());
     }
 
-    // public ServiceClientes(ClienteRepository repository) {
-    //     this.repository = repository;
-    // }
+
 
     
 }
