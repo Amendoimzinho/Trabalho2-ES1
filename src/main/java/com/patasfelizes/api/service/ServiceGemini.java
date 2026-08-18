@@ -527,7 +527,6 @@ private Object executarAgendarConsulta(Map<String, Object> args) {
  */
 private Object executarVerificarHorarios(Map<String, Object> args) {
     try {
-        String especialidade = (String) args.get("especialidade");
         String nroVeterinario = (String) args.get("nroVeterinario");
         
         if (nroVeterinario == null) {
@@ -538,8 +537,8 @@ private Object executarVerificarHorarios(Map<String, Object> args) {
         }
         
         String url = String.format(
-            API_URL + "/horarios?especialidade=%s&data=%s",
-            especialidade, data
+            API_URL + "/veterinarios/%s/horarios-disponiveis",
+            nroVeterinario
         );
         
         RestTemplate restTemplate = new RestTemplate();
@@ -567,10 +566,12 @@ private Object executarBuscarAtendimento(Map<String, Object> args) {
     try {
         String url = API_URL + "/atendimentos";
         
-        if (args.containsKey("codigo")) {
-            url += "/" + args.get("codigo");
-        } else if (args.containsKey("nome")) {
-            url += "?nome=" + args.get("nome");
+        if (args.containsKey("nroAnimal")) {
+            url += "?nroAnimal=" + args.get("nroAnimal");
+        } else if (args.containsKey("nomeCliente")) {
+            url += "?nomeCliente=" + args.get("nomeCliente");
+        } else if (args.containsKey("nroTipoAtendimento")) {
+            url += "?nroTipoAtendimento=" + args.get("nroTipoAtendimento");
         } else {
             return Map.of(
                 "erro", "CRITERIO_NAO_INFORMADO",
@@ -592,93 +593,150 @@ private Object executarBuscarAtendimento(Map<String, Object> args) {
 }
     
     /**
-     * 🔥 ENVIA O RESULTADO DE VOLTA PARA A IA
-     */
-    private String enviarResultadoParaIA(String nomeFuncao, Map<String, Object> argumentos, 
-                                         Object resultado, GeminiEntradaDTO entradaOriginal) {
-        try {
-            String url = GEMINI_URL + "?key=" + apiKey;
-            
-            // Monta a conversa completa
-            List<Map<String, Object>> contents = new ArrayList<>();
-            
-            // 1. System prompt
-            Map<String, Object> systemContent = new HashMap<>();
-            List<Map<String, String>> systemParts = new ArrayList<>();
-            Map<String, String> systemPart = new HashMap<>();
-            systemPart.put("text", SYSTEM_PROMPT);
-            systemParts.add(systemPart);
-            systemContent.put("parts", systemParts);
-            systemContent.put("role", "user");
-            contents.add(systemContent);
-            
-            // 2. Mensagem do usuário
-            Map<String, Object> userContent = new HashMap<>();
-            List<Map<String, String>> userParts = new ArrayList<>();
-            Map<String, String> userPart = new HashMap<>();
-            userPart.put("text", entradaOriginal.getMensagem());
-            userParts.add(userPart);
-            userContent.put("parts", userParts);
-            userContent.put("role", "user");
-            contents.add(userContent);
-            
-            // 3. Resposta da IA (com function call)
-            Map<String, Object> modelContent = new HashMap<>();
-            List<Map<String, Object>> modelParts = new ArrayList<>();
-            Map<String, Object> modelPart = new HashMap<>();
-            Map<String, Object> functionCall = new HashMap<>();
-            functionCall.put("name", nomeFuncao);
-            functionCall.put("args", argumentos);
-            modelPart.put("functionCall", functionCall);
-            modelParts.add(modelPart);
-            modelContent.put("parts", modelParts);
-            modelContent.put("role", "model");
-            contents.add(modelContent);
-            
-            // 4. Resultado da função
-            Map<String, Object> functionContent = new HashMap<>();
-            List<Map<String, Object>> functionParts = new ArrayList<>();
-            Map<String, Object> functionPart = new HashMap<>();
-            Map<String, Object> functionResponse = new HashMap<>();
-            functionResponse.put("name", nomeFuncao);
-            functionResponse.put("response", resultado);
-            functionPart.put("functionResponse", functionResponse);
-            functionParts.add(functionPart);
-            functionContent.put("parts", functionParts);
-            functionContent.put("role", "user");
-            contents.add(functionContent);
-            
-            Map<String, Object> body = new HashMap<>();
-            body.put("contents", contents);
-            
-            // 🔥 FAZ A CHAMADA FINAL
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
-            
-            ResponseEntity<String> response = restTemplate.exchange(
-                url,
-                HttpMethod.POST,
-                request,
-                String.class
-            );
-            
-            // Pega a resposta final
-            JsonNode root = objectMapper.readTree(response.getBody());
-            JsonNode candidates = root.path("candidates");
-            
-            if (candidates.isArray() && candidates.size() > 0) {
-                JsonNode content = candidates.get(0).path("content");
-                JsonNode parts = content.path("parts");
-                if (parts.isArray() && parts.size() > 0) {
-                    return parts.get(0).path("text").asText("Resposta gerada com sucesso!");
-                }
+ * Envia o resultado da função executada de volta para o Gemini,
+ * para que ele gere uma resposta final em linguagem natural.
+ * 
+ * <p>Esta função é chamada quando a IA solicita a execução de uma ferramenta (Tool).
+ * Ela reconstrói a conversa completa com 4 partes:
+ * <ol>
+ *   <li>System Prompt - instruções que definem o papel da IA</li>
+ *   <li>Mensagem original do usuário - contexto da pergunta</li>
+ *   <li>Function Call - a chamada que a IA fez (nome + argumentos)</li>
+ *   <li>Function Response - o resultado da execução da função</li>
+ * </ol>
+ * 
+ * @param nomeFuncao Nome da função executada (ex: "buscarCliente")
+ * @param argumentos Argumentos usados na execução (ex: { "nroCliente": "123" })
+ * @param resultado Resultado da execução (ex: { "id": 1, "nome": "João" })
+ * @param entradaOriginal DTO com a mensagem original do usuário
+ * @return String com a resposta final formatada pelo Gemini
+ */
+private String enviarResultadoParaIA(
+        String nomeFuncao, 
+        Map<String, Object> argumentos, 
+        Object resultado, 
+        GeminiEntradaDTO entradaOriginal) {
+    
+    try {
+        // 1. Constrói a URL da API do Gemini com a chave
+        String url = GEMINI_URL + "?key=" + apiKey;
+        
+        // 2. 🔥 MONTA A CONVERSA COMPLETA
+        List<Map<String, Object>> contents = new ArrayList<>();
+        
+        // 2.1 System Prompt (instruções para a IA)
+        contents.add(criarParteSystemPrompt());
+        
+        // 2.2 Mensagem original do usuário
+        contents.add(criarParteUsuario(entradaOriginal));
+        
+        // 2.3 Function Call (o que a IA pediu)
+        contents.add(criarParteFunctionCall(nomeFuncao, argumentos));
+        
+        // 2.4 Function Response (o resultado que você executou)
+        contents.add(criarParteFunctionResponse(nomeFuncao, resultado));
+        
+        // 3. Monta o corpo da requisição
+        Map<String, Object> body = new HashMap<>();
+        body.put("contents", contents);
+        
+        // 4. ENVIA PARA O GEMINI
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<Map<String, Object>> request = new HttpEntity<>(body, headers);
+        
+        ResponseEntity<String> response = restTemplate.exchange(
+            url,
+            HttpMethod.POST,
+            request,
+            String.class
+        );
+        
+        // 5. Extrai a resposta final do JSON
+        JsonNode root = objectMapper.readTree(response.getBody());
+        JsonNode candidates = root.path("candidates");
+        
+        if (candidates.isArray() && candidates.size() > 0) {
+            JsonNode content = candidates.get(0).path("content");
+            JsonNode parts = content.path("parts");
+            if (parts.isArray() && parts.size() > 0) {
+                // ✅ Retorna a resposta final gerada pela IA
+                return parts.get(0).path("text").asText("Resposta gerada com sucesso!");
             }
-            
-            return "Operação realizada com sucesso! " + resultado;
-            
-        } catch (Exception e) {
-            return "Erro ao processar resultado: " + e.getMessage() + ". Dados: " + resultado;
         }
+        
+        // Fallback: se algo der errado, retorna uma mensagem genérica
+        return "Operação realizada com sucesso! " + resultado;
+        
+    } catch (Exception e) {
+        // Tratamento de erro
+        return "Erro ao processar resultado: " + e.getMessage() + ". Dados: " + resultado;
     }
+}
+
+// ================================================================
+// MÉTODOS AUXILIARES PARA CONSTRUIR A CONVERSA
+// ================================================================
+
+/**
+ * Cria a parte do System Prompt da conversa.
+ */
+private Map<String, Object> criarParteSystemPrompt() {
+    Map<String, Object> content = new HashMap<>();
+    List<Map<String, String>> parts = new ArrayList<>();
+    Map<String, String> part = new HashMap<>();
+    part.put("text", SYSTEM_PROMPT);
+    parts.add(part);
+    content.put("parts", parts);
+    content.put("role", "user");
+    return content;
+}
+
+/**
+ * Cria a parte da mensagem do usuário.
+ */
+private Map<String, Object> criarParteUsuario(GeminiEntradaDTO entradaOriginal) {
+    Map<String, Object> content = new HashMap<>();
+    List<Map<String, String>> parts = new ArrayList<>();
+    Map<String, String> part = new HashMap<>();
+    part.put("text", entradaOriginal.getMensagem());
+    parts.add(part);
+    content.put("parts", parts);
+    content.put("role", "user");
+    return content;
+}
+
+/**
+ * Cria a parte da Function Call (resposta da IA).
+ */
+private Map<String, Object> criarParteFunctionCall(String nomeFuncao, Map<String, Object> argumentos) {
+    Map<String, Object> content = new HashMap<>();
+    List<Map<String, Object>> parts = new ArrayList<>();
+    Map<String, Object> part = new HashMap<>();
+    Map<String, Object> functionCall = new HashMap<>();
+    functionCall.put("name", nomeFuncao);
+    functionCall.put("args", argumentos);
+    part.put("functionCall", functionCall);
+    parts.add(part);
+    content.put("parts", parts);
+    content.put("role", "model");
+    return content;
+}
+
+/**
+ * Cria a parte do Function Response (resultado da execução).
+ */
+private Map<String, Object> criarParteFunctionResponse(String nomeFuncao, Object resultado) {
+    Map<String, Object> content = new HashMap<>();
+    List<Map<String, Object>> parts = new ArrayList<>();
+    Map<String, Object> part = new HashMap<>();
+    Map<String, Object> functionResponse = new HashMap<>();
+    functionResponse.put("name", nomeFuncao);
+    functionResponse.put("response", resultado);
+    part.put("functionResponse", functionResponse);
+    parts.add(part);
+    content.put("parts", parts);
+    content.put("role", "user");
+    return content;
+}
 }
