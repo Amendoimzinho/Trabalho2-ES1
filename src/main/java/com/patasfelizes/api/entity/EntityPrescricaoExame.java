@@ -11,7 +11,8 @@ import jakarta.persistence.GenerationType;
 @Entity
 @Table(name = "PrescricaoExame")
 public class EntityPrescricaoExame {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id 
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @ManyToOne

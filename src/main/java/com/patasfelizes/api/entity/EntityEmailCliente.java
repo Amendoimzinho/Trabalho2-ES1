@@ -13,8 +13,9 @@ import jakarta.persistence.GenerationType;
 @Entity
 @Table(name = "EmailCliente")
 public class EntityEmailCliente {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Integer id; // PK artificial necessária pro JPA
+    @Id 
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
 
     @ManyToOne
     @JoinColumn(name = "nroCliente", nullable = false)

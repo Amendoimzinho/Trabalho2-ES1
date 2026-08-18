@@ -12,7 +12,8 @@ import jakarta.persistence.GenerationType;
 @Entity
 @Table(name = "TelefoneVeterinario")
 public class EntityTelefoneVeterinario {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id 
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @ManyToOne

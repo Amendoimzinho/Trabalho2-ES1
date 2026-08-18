@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
 
+import jakarta.transaction.Transactional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,7 +18,9 @@ import com.patasfelizes.api.entity.EntityCidade;
 import com.patasfelizes.api.entity.EntityEstado;
 import com.patasfelizes.api.repository.ClienteRepository;
 
+
 @Service
+@Transactional
 public class ServiceClientes {
     
     @Autowired
@@ -130,4 +134,10 @@ public class ServiceClientes {
 
         return listaEntidades.stream().map(this::toVO).collect(Collectors.toList());
     }
+
+    // public ServiceClientes(ClienteRepository repository) {
+    //     this.repository = repository;
+    // }
+
+    
 }

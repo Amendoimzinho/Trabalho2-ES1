@@ -13,7 +13,8 @@ import jakarta.persistence.GenerationType;
 @Entity
 @Table(name = "EmailVeterinario")
 public class EntityEmailVeterinario {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id 
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @ManyToOne
