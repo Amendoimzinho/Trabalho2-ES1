@@ -1,15 +1,24 @@
 package com.patasfelizes.api.service;
 
-import com.patasfelizes.api.dto.GeminiEntradaDTO;
-import com.patasfelizes.api.dto.GeminiSaidaDTO;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.http.*;
 
-import java.util.*;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.patasfelizes.api.dto.GeminiEntradaDTO;
+import com.patasfelizes.api.dto.GeminiSaidaDTO;
 
 @Service
 public class ServiceGemini {
@@ -172,10 +181,31 @@ public class ServiceGemini {
         idProp.put("description", "ID do paciente no sistema");
         properties.put("id", idProp);
 
-        Map<String, Object> enderecoProp = new HashMap<>();
-        enderecoProp.put("type", "object")
-        enderecoProp.put("description", "Informacoes do endereco do Cliente, como logradouro, bairro, cidade, estado e CEP");
-        enderecoProp.ut
+        // Map<String, Object> cepProp = new HashMap<>();
+        // cepProp.put("type", "string");
+        // cepProp.put("description", "Código de endereçamento postal");
+        // properties.put("cep", cepProp);
+
+        // Map<String, Object> logradouroProp = new HashMap<>();
+        // logradouroProp.put("type", "string");
+        // logradouroProp.put("description", "Logradouro do endereco, como rua, avenida, alameda, etc...");
+        // properties.put("logradouro", logradouroProp);
+
+        // Map<String, Object> bairroProp = new HashMap<>();
+        // bairroProp.put("type", "string");
+        // bairroProp.put("description", "Nome do bairro de residência do cliente");
+        // properties.put("bairo", bairroProp);
+
+        // Map<String, Object> cidadeProp = new HashMap<>();
+        // cidadeProp.put("type", "string");
+        // cidadeProp.put("description", "Cidade de residência do cliente");
+        // properties.put("cidade", cidadeProp);
+
+        // Map<String, Object> estadoProp = new HashMap<>();
+        // estadoProp.put("type", "string");
+        // estadoProp.put("description", "Estado de residência do cliente");
+        // properties.put("cidade", estadoProp);
+
         
         parameters.put("properties", properties);
         function.put("parameters", parameters);
@@ -412,6 +442,9 @@ public class ServiceGemini {
         try {
             // 🔥 CHAMA SEU ENDPOINT DE AGENDAMENTO
             String url = "http://localhost:8080/api/consultas";
+
+            ServiceClientes serviceCliente = new ServiceClientes();
+            ServiceVeterinario serviceVeterinario = new ServiceVeterinario();
             
             Map<String, Object> body = new HashMap<>();
             body.put("pacienteId", args.get("pacienteId"));
