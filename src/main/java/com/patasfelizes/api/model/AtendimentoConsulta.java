@@ -1,6 +1,6 @@
-package com.patasfelizes.api.model;
+// package com.patasfelizes.api.model;
 
-public class AtendimentoConsulta extends Atendimento {
-    public String observacoes;
-    public PrescricaoConsulta prescricao;
-}
+// public class AtendimentoConsulta extends Atendimento {
+//     public String observacoes;
+//     public PrescricaoConsulta prescricao;
+// }

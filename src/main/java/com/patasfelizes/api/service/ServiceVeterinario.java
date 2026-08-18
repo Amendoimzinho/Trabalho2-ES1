@@ -34,7 +34,7 @@ public class ServiceVeterinario {
             listaEntidades = veterinarioRepository.findById(nroVeterinario).stream().toList();
  
         else if (nomeVeterinario != null && !nomeVeterinario.trim().isEmpty())
-            listaEntidades = veterinarioRepository.findByNomeVeterniarioContainingIgnoreCase(nomeVeterinario);
+            listaEntidades = veterinarioRepository.findByNomeVeterinarioContainingIgnoreCase(nomeVeterinario);
  
         else
             listaEntidades = veterinarioRepository.findAll();
@@ -44,10 +44,14 @@ public class ServiceVeterinario {
  
     private Veterinario toVO(EntityVeterinario entidade) {
         Veterinario vo = new Veterinario();
+        
         vo.nroVeterinario = entidade.getNroVeterinario();
         vo.nome = entidade.getNomeVeterinario();
+        vo.CRMV = entidade.getCrmv();
+        
         return vo;
     }
+
     public List<LocalDateTime> calcularHorariosDisponiveis(Integer nroVeterinario) {
         EntityVeterinario vet = veterinarioRepository.findById(nroVeterinario)
                 .orElseThrow(() -> new RuntimeException("Veterinário não encontrado!"));

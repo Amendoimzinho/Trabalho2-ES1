@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.patasfelizes.api.model.AtendimentoConsulta;
+import com.patasfelizes.api.model.Atendimento;
 import com.patasfelizes.api.service.ServiceAtendimento;
 
 @RestController
@@ -23,22 +23,24 @@ public class ControllerAtendimento {
     private ServiceAtendimento serviceAtendimento;
 
     @GetMapping
-    public ResponseEntity<List<AtendimentoConsulta>> listarAtendimentos(
+    public ResponseEntity<List<Atendimento>> listarAtendimentos(
             @RequestParam(required = false) String nomeCliente,
             @RequestParam(required = false) Integer nroAnimal,
             @RequestParam(required = false) Integer nroTipoAtendimento) {
 
-        List<AtendimentoConsulta> resultado = serviceAtendimento.pesquisarAtendimentos(
+        List<Atendimento> resultado = serviceAtendimento.listarAtendimentos(
                 nomeCliente, nroAnimal, nroTipoAtendimento);
 
         return ResponseEntity.ok(resultado);
     }
 
     @PostMapping
-    public ResponseEntity<AtendimentoConsulta> agendarAtendimento(
-            @RequestBody AtendimentoConsulta vo) {
-
-        AtendimentoConsulta criado = serviceAtendimento.agendarAtendimento(vo);
-        return ResponseEntity.status(HttpStatus.CREATED).body(criado);
+    public ResponseEntity<?> agendarAtendimento(@RequestBody Atendimento vo) {
+        try {
+            Atendimento criado = serviceAtendimento.agendarAtendimento(vo);
+            return ResponseEntity.status(HttpStatus.CREATED).body(criado);
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
     }
 }

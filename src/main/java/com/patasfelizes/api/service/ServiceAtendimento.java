@@ -13,7 +13,7 @@ import com.patasfelizes.api.entity.EntityAtendimento;
 import com.patasfelizes.api.entity.EntityAtendimentoConsulta;
 import com.patasfelizes.api.entity.EntityTipoAtendimento;
 import com.patasfelizes.api.entity.EntityVeterinario;
-import com.patasfelizes.api.model.AtendimentoConsulta;
+import com.patasfelizes.api.model.Atendimento;
 import com.patasfelizes.api.repository.AnimalRepository;
 import com.patasfelizes.api.repository.AtendimentoRepository;
 import com.patasfelizes.api.repository.TipoAtendimentoRepository;
@@ -29,7 +29,7 @@ public class ServiceAtendimento {
     @Autowired private TipoAtendimentoRepository tipoAtendimentoRepository;
     @Autowired private ServiceVeterinario serviceVeterinario;
 
-    public AtendimentoConsulta agendarAtendimento(AtendimentoConsulta vo) {
+    public Atendimento agendarAtendimento(Atendimento vo) {
         LocalDateTime horarioEscolhido = LocalDateTime.parse(vo.ini_dataAtendimento);
         List<LocalDateTime> horariosLivres = serviceVeterinario.calcularHorariosDisponiveis(vo.nroVeterinario);
         
@@ -37,8 +37,6 @@ public class ServiceAtendimento {
             throw new RuntimeException("Erro: Horário indisponível ou fora do expediente do veterinário.");
         }
         
-        EntityAtendimento atendimento = new EntityAtendimento();
-
         EntityAnimal animal = animalRepository.findById(vo.nroAnimal)
                 .orElseThrow(() -> new RuntimeException("Animal não encontrado."));
         EntityVeterinario veterinario = veterinarioRepository.findById(vo.nroVeterinario)
@@ -46,23 +44,24 @@ public class ServiceAtendimento {
         EntityTipoAtendimento tipo = tipoAtendimentoRepository.findById(1)
                 .orElseThrow(() -> new RuntimeException("Tipo de Atendimento base não encontrado."));
 
+        EntityAtendimento atendimento = new EntityAtendimento();
+
         atendimento.setAnimal(animal);
         atendimento.setVeterinario(veterinario);
         atendimento.setTipoAtendimento(tipo);
-        
         atendimento.setInicioAtendimento(horarioEscolhido);
         atendimento.setFimAtendimento(horarioEscolhido.plusHours(1)); 
 
         EntityAtendimentoConsulta consulta = new EntityAtendimentoConsulta();
+
         consulta.setObservacoes(vo.observacoes);
         consulta.setAtendimento(atendimento);
-
         atendimento.setConsultas(List.of(consulta)); 
 
         return toVO(atendimentoRepository.save(atendimento));
     }
 
-    public List<AtendimentoConsulta> pesquisarAtendimentos(String nomeCliente, Integer nroAnimal, Integer nroTipoAtendimento) {
+    public List<Atendimento> listarAtendimentos(String nomeCliente, Integer nroAnimal, Integer nroTipoAtendimento) {
         List<EntityAtendimento> todos = atendimentoRepository.findAll();
 
         return todos.stream()
@@ -80,8 +79,9 @@ public class ServiceAtendimento {
             .collect(Collectors.toList());
     }
 
-    private AtendimentoConsulta toVO(EntityAtendimento entidade) {
-        AtendimentoConsulta vo = new AtendimentoConsulta();
+    private Atendimento toVO(EntityAtendimento entidade) {
+        Atendimento vo = new Atendimento();
+
         vo.nroAnimal = entidade.getAnimal().getNroAnimal();
         vo.nomeAnimal = entidade.getAnimal().getNomeAnimal();
         vo.nroVeterinario = entidade.getVeterinario().getNroVeterinario();

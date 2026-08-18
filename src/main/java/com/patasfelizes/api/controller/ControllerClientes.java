@@ -16,13 +16,13 @@ import com.patasfelizes.api.model.Cliente;
 import com.patasfelizes.api.service.ServiceClientes;
 
 @RestController
-@RequestMapping("/clientes")
+@RequestMapping("/api/clientes")
 public class ControllerClientes {
 
     @Autowired
     private ServiceClientes serviceClientes;
 
-    @GetMapping
+    @GetMapping("/buscar")
     public ResponseEntity<List<Cliente>> listarClientes(
             @RequestParam(required = false) String nomeCliente,
             @RequestParam(required = false) Integer nroCliente) {
@@ -31,7 +31,7 @@ public class ControllerClientes {
         return ResponseEntity.ok(resultado);
     }
 
-    @PostMapping
+    @PostMapping("/criar")
     public ResponseEntity<Cliente> criarCliente(@RequestBody Cliente clienteVO) {
         Cliente criado = serviceClientes.criarCliente(clienteVO);
         return ResponseEntity.status(HttpStatus.CREATED).body(criado);

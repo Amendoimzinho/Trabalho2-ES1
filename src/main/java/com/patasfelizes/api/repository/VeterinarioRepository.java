@@ -5,5 +5,5 @@ import java.util.List;
 import com.patasfelizes.api.entity.EntityVeterinario;
 
 public interface VeterinarioRepository extends JpaRepository<EntityVeterinario, Integer> {
-    List<EntityVeterinario> findByNomeVeterniarioContainingIgnoreCase(String nomeVeterinario);
+    List<EntityVeterinario> findByNomeVeterinarioContainingIgnoreCase(String nomeVeterinario);
 }
