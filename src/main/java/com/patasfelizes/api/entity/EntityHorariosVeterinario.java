@@ -59,11 +59,8 @@ public class EntityHorariosVeterinario {
         this.fimIntervalo = fimIntervalo;
     }
 
-    public EntityHorariosVeterinario(Integer id, EntityVeterinario veterinario, LocalDateTime inicioIntervalo,
-            LocalDateTime fimIntervalo) {
-        this.id = id;
-        this.veterinario = veterinario;
-        this.inicioIntervalo = inicioIntervalo;
-        this.fimIntervalo = fimIntervalo;
+    public EntityHorariosVeterinario() {
     }
+
+
 }

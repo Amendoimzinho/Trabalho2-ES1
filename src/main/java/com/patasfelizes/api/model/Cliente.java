@@ -10,7 +10,7 @@ public class Cliente {
     public List<String> emails;
     public List<String> telefones;
 
-    public Integer CEP;
+    public String CEP;
     public String logradouro;
     public String bairro;
     public String cidade;

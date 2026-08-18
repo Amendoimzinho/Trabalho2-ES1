@@ -58,12 +58,10 @@ public class EntityTelefoneCliente {
         this.telefone = telefone;
     }
 
-    public EntityTelefoneCliente(Integer id, EntityCliente cliente, EntityDDD ddd, String telefone) {
-        this.id = id;
-        this.cliente = cliente;
-        this.ddd = ddd;
-        this.telefone = telefone;
+    public EntityTelefoneCliente() {
     }
+
+
 
 }
 

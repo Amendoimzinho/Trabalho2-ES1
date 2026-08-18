@@ -33,8 +33,8 @@ public class EntityTipoExame {
         this.nomeTipoExame = nomeTipoExame;
     }
 
-    public EntityTipoExame(Integer nroTipoExame, String nomeTipoExame) {
-        this.nroTipoExame = nroTipoExame;
-        this.nomeTipoExame = nomeTipoExame;
+    public EntityTipoExame() {
     }
+
+
 }

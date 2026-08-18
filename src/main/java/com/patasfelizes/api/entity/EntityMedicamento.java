@@ -42,9 +42,7 @@ public class EntityMedicamento {
         this.fabricante = fabricante;
     }
 
-    public EntityMedicamento(Integer nroMedicamento, String nomeMedicamento, String fabricante) {
-        this.nroMedicamento = nroMedicamento;
-        this.nomeMedicamento = nomeMedicamento;
-        this.fabricante = fabricante;
+    public EntityMedicamento() {
     }
+
 }

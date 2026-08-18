@@ -46,11 +46,10 @@ public class EntityCidade {
         this.estado = estado;
     }
 
-    public EntityCidade(Integer nroCidade, String nomeCidade, EntityEstado estado) {
-        this.nroCidade = nroCidade;
-        this.nomeCidade = nomeCidade;
-        this.estado = estado;
+    public EntityCidade() {
     }
+
+
 
     
 }

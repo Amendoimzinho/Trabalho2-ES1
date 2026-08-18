@@ -31,8 +31,8 @@ public class EntityTipoAtendimento {
         this.nomeTipoAtendimento = nomeTipoAtendimento;
     }
 
-    public EntityTipoAtendimento(Integer nroTipoAtendimento, String nomeTipoAtendimento) {
-        this.nroTipoAtendimento = nroTipoAtendimento;
-        this.nomeTipoAtendimento = nomeTipoAtendimento;
+    public EntityTipoAtendimento() {
     }
+
+
 }

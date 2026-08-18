@@ -47,11 +47,10 @@ public class EntityEmailCliente {
         this.email = email;
     }
 
-    public EntityEmailCliente(Integer id, EntityCliente cliente, String email) {
-        this.id = id;
-        this.cliente = cliente;
-        this.email = email;
+    public EntityEmailCliente() {
     }
+
+
 
 
 }

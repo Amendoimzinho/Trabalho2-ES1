@@ -82,15 +82,10 @@ public class EntityAtendimento {
         this.fimAtendimento = fimAtendimento;
     }
 
-    public EntityAtendimento(Integer nroAtendimento, EntityTipoAtendimento tipoAtendimento, EntityAnimal animal,
-            EntityVeterinario veterinario, LocalDateTime inicioAtendimento, LocalDateTime fimAtendimento) {
-        this.nroAtendimento = nroAtendimento;
-        this.tipoAtendimento = tipoAtendimento;
-        this.animal = animal;
-        this.veterinario = veterinario;
-        this.inicioAtendimento = inicioAtendimento;
-        this.fimAtendimento = fimAtendimento;
+    public EntityAtendimento() {
     }
+
+
 
     
 }

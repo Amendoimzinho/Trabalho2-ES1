@@ -70,12 +70,8 @@ public class EntityPrescricaoMedicamento {
         this.unidadeMedida = unidadeMedida;
     }
 
-    public EntityPrescricaoMedicamento(Integer id, EntityAtendimentoConsulta consulta, EntityMedicamento medicamento,
-            Double dosagem, EntityUNMedida unidadeMedida) {
-        this.id = id;
-        this.consulta = consulta;
-        this.medicamento = medicamento;
-        this.dosagem = dosagem;
-        this.unidadeMedida = unidadeMedida;
+    public EntityPrescricaoMedicamento() {
     }
+
+
 }

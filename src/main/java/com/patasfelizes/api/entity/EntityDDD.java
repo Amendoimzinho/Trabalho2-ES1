@@ -33,9 +33,9 @@ public class EntityDDD {
         this.codigoDDD = codigoDDD;
     }
 
-    public EntityDDD(Integer nroDDD, Integer codigoDDD) {
-        this.nroDDD = nroDDD;
-        this.codigoDDD = codigoDDD;
+    public EntityDDD() {
     }
+
+
 }
 

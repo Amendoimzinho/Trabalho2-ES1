@@ -46,9 +46,8 @@ public class EntityPrescricaoExame {
         this.tipoExame = tipoExame;
     }
 
-    public EntityPrescricaoExame(Integer id, EntityAtendimentoConsulta consulta, EntityTipoExame tipoExame) {
-        this.id = id;
-        this.consulta = consulta;
-        this.tipoExame = tipoExame;
+    public EntityPrescricaoExame() {
     }
+
+
 }

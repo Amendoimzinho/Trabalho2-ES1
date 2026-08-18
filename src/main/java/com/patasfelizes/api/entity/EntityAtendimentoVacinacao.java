@@ -71,14 +71,10 @@ public class EntityAtendimentoVacinacao {
         this.observacao = observacao;
     }
 
-    public EntityAtendimentoVacinacao(Integer id, EntityAtendimento atendimento, EntityVacina vacina,
-            LocalDateTime dataProxVacinacao, String observacao) {
-        this.id = id;
-        this.atendimento = atendimento;
-        this.vacina = vacina;
-        this.dataProxVacinacao = dataProxVacinacao;
-        this.observacao = observacao;
+    public EntityAtendimentoVacinacao() {
     }
+
+
 
     
 }

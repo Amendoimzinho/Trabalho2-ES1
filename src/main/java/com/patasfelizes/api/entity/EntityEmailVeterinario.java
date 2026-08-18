@@ -47,11 +47,10 @@ public class EntityEmailVeterinario {
         this.email = email;
     }
 
-    public EntityEmailVeterinario(Integer id, EntityVeterinario veterinario, String email) {
-        this.id = id;
-        this.veterinario = veterinario;
-        this.email = email;
+    public EntityEmailVeterinario() {
     }
+
+
 }
 
 

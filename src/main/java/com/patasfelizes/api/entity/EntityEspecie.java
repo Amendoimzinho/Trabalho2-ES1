@@ -31,8 +31,8 @@ public class EntityEspecie {
         this.nomeEspecie = nomeEspecie;
     }
 
-    public EntityEspecie(Integer nroEspecie, String nomeEspecie) {
-        this.nroEspecie = nroEspecie;
-        this.nomeEspecie = nomeEspecie;
+    public EntityEspecie() {
     }
+
+
 }

@@ -82,13 +82,8 @@ public class EntityEnderecoCliente {
         this.cidade = cidade;
     }
 
-    public EntityEnderecoCliente(Integer id, EntityCliente cliente, String cep, String logradouro, EntityBairro bairro,
-            EntityCidade cidade) {
-        this.id = id;
-        this.cliente = cliente;
-        this.cep = cep;
-        this.logradouro = logradouro;
-        this.bairro = bairro;
-        this.cidade = cidade;
+    public EntityEnderecoCliente() {
     }
+
+
 }

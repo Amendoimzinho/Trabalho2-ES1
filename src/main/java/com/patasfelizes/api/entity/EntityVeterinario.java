@@ -42,9 +42,8 @@ public class EntityVeterinario {
         this.crmv = crmv;
     }
 
-    public EntityVeterinario(Integer nroVeterinario, String nomeVeterinario, String crmv) {
-        this.nroVeterinario = nroVeterinario;
-        this.nomeVeterinario = nomeVeterinario;
-        this.crmv = crmv;
+    public EntityVeterinario() {
     }
+
+
 }

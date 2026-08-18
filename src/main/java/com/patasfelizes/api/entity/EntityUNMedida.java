@@ -31,8 +31,8 @@ public class EntityUNMedida {
         this.nomeUNMedida = nomeUNMedida;
     }
 
-    public EntityUNMedida(Integer nroUNMedida, String nomeUNMedida) {
-        this.nroUNMedida = nroUNMedida;
-        this.nomeUNMedida = nomeUNMedida;
+    public EntityUNMedida() {
     }
+
+
 }

@@ -45,9 +45,8 @@ public class EntityTipoAnimal {
         this.nomeTipoAnimal = nomeTipoAnimal;
     }
 
-    public EntityTipoAnimal(Integer nroTipoAnimal, EntityEspecie especie, String nomeTipoAnimal) {
-        this.nroTipoAnimal = nroTipoAnimal;
-        this.especie = especie;
-        this.nomeTipoAnimal = nomeTipoAnimal;
+    public EntityTipoAnimal() {
     }
+
+
 }

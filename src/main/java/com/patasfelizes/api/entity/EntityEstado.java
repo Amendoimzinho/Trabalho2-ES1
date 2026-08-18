@@ -31,8 +31,8 @@ public class EntityEstado {
         this.nomeEstado = nomeEstado;
     }
 
-    public EntityEstado(Integer nroEstado, String nomeEstado) {
-        this.nroEstado = nroEstado;
-        this.nomeEstado = nomeEstado;
+    public EntityEstado() {
     }
+
+
 }

@@ -66,12 +66,8 @@ public class EntityVacina {
         this.fabricante = fabricante;
     }
 
-    public EntityVacina(Integer nroVacina, String nomeVacina, Integer lote, LocalDateTime dataFabricacao,
-            String fabricante) {
-        this.nroVacina = nroVacina;
-        this.nomeVacina = nomeVacina;
-        this.lote = lote;
-        this.dataFabricacao = dataFabricacao;
-        this.fabricante = fabricante;
+    public EntityVacina() {
     }
+
+
 }

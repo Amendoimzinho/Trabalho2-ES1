@@ -32,10 +32,10 @@ public class EntityBairro {
         this.nomeBairro = nomeBairro;
     }
 
-    public EntityBairro(Integer nroBairro, String nomeBairro) {
-        this.nroBairro = nroBairro;
-        this.nomeBairro = nomeBairro;
+    public EntityBairro() {
     }
+
+
 
     
 }

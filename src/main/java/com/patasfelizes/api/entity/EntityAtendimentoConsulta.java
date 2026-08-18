@@ -45,11 +45,10 @@ public class EntityAtendimentoConsulta {
         this.observacoes = observacoes;
     }
 
-    public EntityAtendimentoConsulta(Integer nroConsulta, EntityAtendimento atendimento, String observacoes) {
-        this.nroConsulta = nroConsulta;
-        this.atendimento = atendimento;
-        this.observacoes = observacoes;
+    public EntityAtendimentoConsulta() {
     }
+
+
 
     
 }

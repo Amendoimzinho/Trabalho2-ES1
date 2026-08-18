@@ -58,10 +58,8 @@ public class EntityTelefoneVeterinario {
         this.telefone = telefone;
     }
 
-    public EntityTelefoneVeterinario(Integer id, EntityVeterinario veterinario, EntityDDD ddd, String telefone) {
-        this.id = id;
-        this.veterinario = veterinario;
-        this.ddd = ddd;
-        this.telefone = telefone;
+    public EntityTelefoneVeterinario() {
     }
+
+
 }

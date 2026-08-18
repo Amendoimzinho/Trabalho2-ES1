@@ -90,16 +90,10 @@ public class EntityAnimal {
         this.observacoes = observacoes;
     }
 
-    public EntityAnimal(Integer nroAnimal, EntityTipoAnimal tipoAnimal, String nomeAnimal, EntityCliente cliente,
-            Boolean genero, Double peso, String observacoes) {
-        this.nroAnimal = nroAnimal;
-        this.tipoAnimal = tipoAnimal;
-        this.nomeAnimal = nomeAnimal;
-        this.cliente = cliente;
-        this.genero = genero;
-        this.peso = peso;
-        this.observacoes = observacoes;
+    public EntityAnimal() {
     }
+
+
 
     
 }
