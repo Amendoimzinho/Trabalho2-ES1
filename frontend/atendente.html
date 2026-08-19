@@ -9,15 +9,28 @@
 </head>
 <body>
     <header id="global-header" class="header-container"></header>
-    
+
     <main class="main-container">
 
         <section class="categories-container">
-            <button class="btn-category" data-category="clientes">Gerenciar Clientes</button>
-            <button class="btn-category" data-category="pets">Gerenciar Pets</button>
-            <button class="btn-category" data-category="atendimentos">Gerenciar Atendimentos</button>
+            <button class="btn-category" data-category="clientes">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.2"/><path d="M5 20c0-3.5 3-6 7-6s7 2.5 7 6"/></svg>
+                Gerenciar Clientes
+            </button>
+            <button class="btn-category" data-category="pets">
+                <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8.5 8.2c1.05 0 1.9-1.1 1.9-2.45S9.55 3.3 8.5 3.3s-1.9 1.1-1.9 2.45 .85 2.45 1.9 2.45zm7 0c1.05 0 1.9-1.1 1.9-2.45S16.55 3.3 15.5 3.3s-1.9 1.1-1.9 2.45 .85 2.45 1.9 2.45zM4.8 12.9c.95 0 1.7-1 1.7-2.2s-.75-2.2-1.7-2.2-1.7 1-1.7 2.2 .75 2.2 1.7 2.2zm14.4 0c.95 0 1.7-1 1.7-2.2s-.75-2.2-1.7-2.2-1.7 1-1.7 2.2 .75 2.2 1.7 2.2zM12 11.4c-2.3 0-4.85 1.9-5.35 4.15-.35 1.55.65 2.75 2.05 2.75.85 0 1.4-.35 2.2-.35s1.35.35 2.2.35c1.4 0 2.4-1.2 2.05-2.75-.5-2.25-3.05-4.15-5.15-4.15z"/></svg>
+                Gerenciar Pets
+            </button>
+            <button class="btn-category" data-category="atendimentos">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="5.5" width="16" height="15" rx="2.5"/><path d="M8 3.5v4M16 3.5v4M4 10h16"/></svg>
+                Gerenciar Atendimentos
+            </button>
+            <button class="btn-category" data-category="veterinarios">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
+                Gerenciar Veterinários
+            </button>
         </section>
-        
+
         <section id="options-container" class="options-container"></section>
 
         <section id="dynamic-panel" class="panel-container">
@@ -25,18 +38,23 @@
                 <h2 id="panel-title">Título</h2>
                 <button id="close-panel" class="btn-close">&times;</button>
             </div>
-            
+
             <div id="panel-dynamic-body" class="panel-body"></div>
         </section>
     </main>
 
     <template id="tmpl-cadastrar-cliente">
         <form class="modal-form">
-            <input type="text" placeholder="Nome Completo" required>
-            <input type="text" placeholder="CPF" required>
-            <input type="tel" placeholder="Telefone" required>
-            <input type="text" placeholder="Endereço">
-            
+            <input type="text" name="nomeCliente" placeholder="Nome Completo" required>
+            <input type="text" name="cpf" placeholder="CPF" required>
+            <input type="tel" name="telefone" placeholder="Telefone">
+            <input type="email" name="email" placeholder="Email">
+            <input type="text" name="cep" placeholder="CEP">
+            <input type="text" name="logradouro" placeholder="Logradouro">
+            <input type="text" name="bairro" placeholder="Bairro">
+            <input type="text" name="cidade" placeholder="Cidade">
+            <input type="text" name="estado" placeholder="Estado">
+
             <div class="modal-footer">
                 <button type="button" class="btn-secondary close-panel-action">Cancelar</button>
                 <button type="button" class="btn-primary close-panel-action">Salvar Cadastro</button>
@@ -47,63 +65,30 @@
     <template id="tmpl-consultar-clientes">
         <div class="list-container">
             <div class="filter-bar">
-                <input type="text" placeholder="Buscar cliente por nome ou CPF...">
-                <select>
+                <input type="text" id="filtro-cliente-texto" placeholder="Buscar cliente por nome...">
+                <select disabled title="Filtro ainda não suportado pela API">
                     <option>Ativos</option>
                     <option>Inativos</option>
                 </select>
             </div>
-            <ul class="data-list">
-                <li class="data-item">
-                    <div class="item-info">
-                        <strong>João Silva</strong>
-                        <span>(45) 99999-1234</span>
-                    </div>
-                    <div class="item-actions">
-                        <button class="action-btn" title="Visualizar">
-                            <span class="material-symbols-outlined">visibility</span>
-                        </button>
-                        <button class="action-btn">
-                            <span class="material-symbols-outlined">edit</span>
-                        </button>
-                        <button class="action-btn delete-btn" title="Excluir">
-                            <span class="material-symbols-outlined">delete</span>
-                        </button>
-                    </div>
-                </li>
-                <li class="data-item">
-                    <div class="item-info">
-                        <strong>Maria Oliveira</strong>
-                        <span>(45) 98888-5678</span>
-                    </div>
-                    <div class="item-actions">
-                        <button class="action-btn" title="Visualizar">
-                            <span class="material-symbols-outlined">visibility</span>
-                        </button>
-                        <button class="action-btn">
-                            <span class="material-symbols-outlined">edit</span>
-                        </button>
-                        <button class="action-btn delete-btn" title="Excluir">
-                            <span class="material-symbols-outlined">delete</span>
-                        </button>
-                    </div>
-                </li>
+            <ul class="data-list" id="lista-clientes">
+                <li class="data-item">Carregando...</li>
             </ul>
-            </div>
+        </div>
     </template>
 
     <template id="tmpl-cadastrar-pet">
         <form class="modal-form">
-            <input type="text" placeholder="Nome do Pet" required>
-            <select required>
+            <input type="text" name="nomeAnimal" placeholder="Nome do Pet" required>
+            <select name="especie" required>
                 <option value="" disabled selected>Espécie...</option>
                 <option>Cachorro</option>
                 <option>Gato</option>
                 <option>Exótico</option>
             </select>
-            <input type="text" placeholder="Raça">
-            <input type="text" placeholder="Tutor Responsável" required>
-            
+            <input type="text" name="raca" placeholder="Raça">
+            <input type="text" name="nomeTutor" placeholder="Tutor Responsável (já cadastrado)" required>
+
             <div class="modal-footer">
                 <button type="button" class="btn-secondary close-panel-action">Cancelar</button>
                 <button type="button" class="btn-primary close-panel-action">Salvar Pet</button>
@@ -114,48 +99,32 @@
     <template id="tmpl-consultar-pets">
         <div class="list-container">
             <div class="filter-bar">
-                <input type="text" placeholder="Buscar pet por nome ou raça...">
-                <select>
+                <input type="text" id="filtro-pet-texto" placeholder="Buscar pet por nome...">
+                <select disabled title="Filtro ainda não suportado pela API">
                     <option>Cachorros</option>
                     <option>Gatos</option>
                     <option>Todos</option>
                 </select>
             </div>
-            <ul class="data-list">
-                <li class="data-item">
-                    <div class="item-info">
-                        <strong>Rex</strong>
-                        <span>Cachorro - Pastor Alemão</span>
-                    </div>
-                    <div class="item-actions">
-                        <button class="action-btn" title="Visualizar">
-                            <span class="material-symbols-outlined">visibility</span>
-                        </button>
-                        <button class="action-btn">
-                            <span class="material-symbols-outlined">edit</span>
-                        </button>
-                        <button class="action-btn delete-btn" title="Excluir">
-                            <span class="material-symbols-outlined">delete</span>
-                        </button>
-                    </div>
-                </li>
+            <ul class="data-list" id="lista-pets">
+                <li class="data-item">Carregando...</li>
             </ul>
-            </div>
+        </div>
     </template>
 
     <template id="tmpl-agendar-atendimento">
         <form class="modal-form">
-            <input type="date" required>
-            <input type="time" required>
-            <input type="text" placeholder="Nome do Pet" required>
-            <select required>
+            <input type="date" name="data" required>
+            <input type="time" name="hora" required>
+            <input type="text" name="nomeAnimal" placeholder="Nome do Pet (já cadastrado)" required>
+            <select name="motivo" required>
                 <option value="" disabled selected>Motivo do Atendimento...</option>
                 <option>Consulta de Rotina</option>
                 <option>Vacinação</option>
                 <option>Emergência</option>
                 <option>Banho & Tosa</option>
             </select>
-            
+
             <div class="modal-footer">
                 <button type="button" class="btn-secondary close-panel-action">Cancelar</button>
                 <button type="button" class="btn-primary close-panel-action">Agendar</button>
@@ -166,35 +135,32 @@
     <template id="tmpl-consultar-atendimentos">
         <div class="list-container">
             <div class="filter-bar">
-                <input type="date">
-                <select>
+                <input type="text" id="filtro-atendimento-cliente" placeholder="Buscar por nome do cliente...">
+                <input type="date" disabled title="Filtro de data ainda não suportado pela API">
+                <select disabled title="Filtro ainda não suportado pela API">
                     <option>Pendentes</option>
                     <option>Concluídos</option>
                     <option>Cancelados</option>
                 </select>
             </div>
-            <ul class="data-list">
-                <li class="data-item">
-                    <div class="item-info">
-                        <strong>Consulta: Rex</strong>
-                        <span>16/06/2026 - 14:30</span>
-                    </div>
-                    <div class="item-actions">
-                        <button class="action-btn" title="Visualizar">
-                            <span class="material-symbols-outlined">visibility</span>
-                        </button>
-                        <button class="action-btn">
-                            <span class="material-symbols-outlined">edit</span>
-                        </button>
-                        <button class="action-btn delete-btn" title="Excluir">
-                            <span class="material-symbols-outlined">delete</span>
-                        </button>
-                    </div>
-                </li>
+            <ul class="data-list" id="lista-atendimentos">
+                <li class="data-item">Carregando...</li>
             </ul>
-            </div>
+        </div>
     </template>
 
+    <template id="tmpl-consultar-veterinarios">
+        <div class="list-container">
+            <div class="filter-bar">
+                <input type="text" id="filtro-veterinario-texto" placeholder="Buscar veterinário por nome...">
+            </div>
+            <ul class="data-list" id="lista-veterinarios">
+                <li class="data-item">Carregando...</li>
+            </ul>
+        </div>
+    </template>
+
+    <script src="scripts/api.js"></script>
     <script src="scripts/navbar-loader.js"></script>
     <script src="scripts/script.js"></script>
 </body>

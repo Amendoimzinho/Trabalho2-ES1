@@ -8,7 +8,7 @@
 </head>
 <body>
     <header id="global-header" class="header-container"></header>
-    
+
     <main class="main-container">
         <section class="options-container">
             <button class="btn-category direct-action" data-title="Atendimento em Andamento" data-template="tmpl-atendimento-atual">
@@ -30,7 +30,7 @@
                 <h2 id="panel-title">Título</h2>
                 <button id="close-panel" class="btn-close">&times;</button>
             </div>
-            
+
             <div id="panel-dynamic-body" class="panel-body"></div>
         </section>
     </main>
@@ -56,7 +56,7 @@
                 <option value="v10">Aplicar V10</option>
                 <option value="antirrabica">Aplicar Antirrábica</option>
             </select>
-            
+
             <div class="modal-footer">
                 <button type="button" class="btn-primary close-panel-action">Salvar e Encerrar Atendimento</button>
             </div>
@@ -66,28 +66,11 @@
     <template id="tmpl-prontuario">
         <div class="list-container">
             <div class="filter-bar">
-                <input type="text" placeholder="Buscar pet por nome, raça ou CPF do tutor...">
-                <button type="button" class="btn-primary">Buscar</button>
+                <input type="text" id="filtro-prontuario-texto" placeholder="Buscar pet por nome...">
+                <button type="button" class="btn-primary" id="btn-buscar-prontuario">Buscar</button>
             </div>
-            <ul class="data-list">
-                <li class="data-item">
-                    <div class="item-info">
-                        <strong>Mial</strong>
-                        <span>Felina - Siamês | Tutora: Ana Costa</span>
-                    </div>
-                    <div class="item-actions">
-                        <button class="btn-secondary btn-sm" onclick="alert('Abrindo Histórico Completo de Mial...')">Abrir Histórico</button>
-                    </div>
-                </li>
-                <li class="data-item">
-                    <div class="item-info">
-                        <strong>Thor</strong>
-                        <span>Canina - Golden Retriever | Tutor: Carlos Dias</span>
-                    </div>
-                    <div class="item-actions">
-                        <button class="btn-secondary btn-sm" onclick="alert('Abrindo Histórico Completo de Thor...')">Abrir Histórico</button>
-                    </div>
-                </li>
+            <ul class="data-list" id="lista-prontuario">
+                <li class="data-item">Digite um nome e clique em Buscar.</li>
             </ul>
         </div>
     </template>
@@ -95,30 +78,10 @@
     <template id="tmpl-agenda">
         <div class="list-container">
             <div class="filter-bar">
-                <input type="date" value="2026-06-16" title="Data da Agenda">
+                <input type="date" id="filtro-agenda-data" title="Data da Agenda">
             </div>
-            <ul class="data-list">
-                <li class="data-item highlighted">
-                    <div class="item-info">
-                        <strong>14:00 - Toby (Canina)</strong>
-                        <span>Motivo: Retorno Cirúrgico</span>
-                    </div>
-                    <span class="badge done">[Concluído]</span>
-                </li>
-                <li class="data-item highlighted">
-                    <div class="item-info">
-                        <strong>15:30 - Rex (Canina)</strong>
-                        <span>Motivo: Consulta de Rotina</span>
-                    </div>
-                    <span class="badge now">[Agora]</span>
-                </li>
-                <li class="data-item">
-                    <div class="item-info">
-                        <strong>16:45 - Luna (Felina)</strong>
-                        <span>Motivo: Vacinação Anual</span>
-                    </div>
-                    <span class="badge waiting">[Aguardando]</span>
-                </li>
+            <ul class="data-list" id="lista-agenda">
+                <li class="data-item">Carregando...</li>
             </ul>
         </div>
     </template>
@@ -164,6 +127,7 @@
         </ul>
     </template>
 
+    <script src="scripts/api.js"></script>
     <script src="scripts/navbar-loader.js"></script>
     <script src="scripts/veterinario.js"></script>
 </body>

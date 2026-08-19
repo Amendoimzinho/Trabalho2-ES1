@@ -2,11 +2,16 @@
 
 // import org.springframework.beans.factory.annotation.Autowired;
 // import org.springframework.http.ResponseEntity;
-// import org.springframework.web.bind.annotation.*;
+// import org.springframework.web.bind.annotation.GetMapping;
+// import org.springframework.web.bind.annotation.PostMapping;
+// import org.springframework.web.bind.annotation.RequestBody;
+// import org.springframework.web.bind.annotation.RequestMapping;
+// import org.springframework.web.bind.annotation.RestController;
 
-// import com.patasfelizes.api.service.ServiceGemini;
 // import com.patasfelizes.api.dto.GeminiEntradaDTO;
 // import com.patasfelizes.api.dto.GeminiSaidaDTO;
+// import com.patasfelizes.api.service.ServiceGemini;
+
 
 // @RestController
 // @RequestMapping("/api/gemini")
@@ -14,6 +19,12 @@
     
 //     @Autowired
 //     private ServiceGemini serviceGemini;
+
+//     @GetMapping("/teste")
+//     public String testeConexão() {
+//         return serviceGemini.teste();
+//     }
+    
     
 //     @PostMapping("/perguntar")
 //     public ResponseEntity<GeminiSaidaDTO> perguntar(@RequestBody GeminiEntradaDTO entrada) {

@@ -3,512 +3,100 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Assistente PatasFelizes - Gemini</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-
-        .container {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            width: 100%;
-            max-width: 800px;
-            padding: 30px;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .header h1 {
-            color: #333;
-            font-size: 28px;
-        }
-
-        .header h1 span {
-            color: #667eea;
-        }
-
-        .header p {
-            color: #666;
-            margin-top: 5px;
-        }
-
-        .chat-area {
-            background: #f8f9fa;
-            border-radius: 15px;
-            padding: 20px;
-            min-height: 400px;
-            max-height: 500px;
-            overflow-y: auto;
-            margin-bottom: 20px;
-        }
-
-        .message {
-            margin-bottom: 15px;
-            padding: 12px 16px;
-            border-radius: 12px;
-            max-width: 85%;
-            animation: fadeIn 0.3s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        .message.user {
-            background: #667eea;
-            color: white;
-            margin-left: auto;
-            text-align: right;
-        }
-
-        .message.assistant {
-            background: white;
-            color: #333;
-            border: 1px solid #e0e0e0;
-            margin-right: auto;
-        }
-
-        .message.system {
-            background: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffc107;
-            margin-right: auto;
-            font-size: 13px;
-        }
-
-        .message .label {
-            font-size: 11px;
-            font-weight: bold;
-            opacity: 0.7;
-            margin-bottom: 4px;
-        }
-
-        .message .text {
-            font-size: 15px;
-            line-height: 1.5;
-        }
-
-        .message .text .highlight {
-            color: #667eea;
-            font-weight: bold;
-        }
-
-        .message .loading {
-            display: inline-block;
-            width: 14px;
-            height: 14px;
-            border: 3px solid #e0e0e0;
-            border-top-color: #667eea;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            vertical-align: middle;
-            margin-right: 8px;
-        }
-
-        .message .pulse-dot {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            background: #667eea;
-            border-radius: 50%;
-            animation: pulse 1.2s ease-in-out infinite;
-            margin-right: 6px;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .message .function-call {
-            background: #e8f5e9;
-            padding: 8px 12px;
-            border-radius: 8px;
-            margin-top: 6px;
-            font-family: 'Consolas', monospace;
-            font-size: 13px;
-            border-left: 3px solid #4caf50;
-        }
-
-        .message .function-result {
-            background: #e3f2fd;
-            padding: 8px 12px;
-            border-radius: 8px;
-            margin-top: 6px;
-            font-family: 'Consolas', monospace;
-            font-size: 13px;
-            border-left: 3px solid #2196f3;
-            white-space: pre-wrap;
-        }
-
-        .message .function-result .json-key {
-            color: #d32f2f;
-        }
-        .message .function-result .json-value {
-            color: #2e7d32;
-        }
-
-        .input-area {
-            display: flex;
-            gap: 10px;
-        }
-
-        .input-area input {
-            flex: 1;
-            padding: 14px 18px;
-            border: 2px solid #e0e0e0;
-            border-radius: 12px;
-            font-size: 15px;
-            outline: none;
-            transition: border-color 0.3s;
-        }
-
-        .input-area input:focus {
-            border-color: #667eea;
-        }
-
-        .input-area button {
-            padding: 14px 28px;
-            background: #667eea;
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 15px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background 0.3s, transform 0.2s;
-            white-space: nowrap;
-        }
-
-        .input-area button:hover {
-            background: #5a6fd6;
-        }
-
-        .input-area button:active {
-            transform: scale(0.95);
-        }
-
-        .input-area button:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-        }
-
-        .quick-buttons {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            margin-top: 12px;
-        }
-
-        .quick-buttons button {
-            padding: 8px 16px;
-            background: #f0f0f0;
-            border: 1px solid #ddd;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 13px;
-            transition: all 0.2s;
-        }
-
-        .quick-buttons button:hover {
-            background: #667eea;
-            color: white;
-            border-color: #667eea;
-        }
-
-        .status {
-            text-align: center;
-            font-size: 13px;
-            color: #999;
-            margin-top: 12px;
-        }
-
-        .status .error {
-            color: #e74c3c;
-        }
-
-        .status .success {
-            color: #27ae60;
-        }
-
-        .badge {
-            display: inline-block;
-            font-size: 11px;
-            background: #e8f5e9;
-            color: #2e7d32;
-            padding: 2px 10px;
-            border-radius: 12px;
-            margin-top: 6px;
-        }
-
-        .badge.function {
-            background: #fff3e0;
-            color: #e65100;
-        }
-
-        .badge.executing {
-            background: #e3f2fd;
-            color: #0d47a1;
-            animation: pulse 1.2s ease-in-out infinite;
-        }
-
-        .typing-indicator {
-            display: inline-block;
-            font-size: 14px;
-        }
-
-        .typing-indicator span {
-            display: inline-block;
-            animation: pulse 1.4s ease-in-out infinite;
-        }
-
-        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
-        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
-    </style>
+    <title>Patas Felizes - Área do Gestor</title>
+    <link rel="stylesheet" href="styles/main.css">
 </head>
 <body>
+    <header id="global-header" class="header-container"></header>
 
-    <div class="container">
-        <!-- Header -->
-        <div class="header">
-            <h1>🐾 <span>PatasFelizes</span> Assistente</h1>
-            <p>🤖 IA com Gemini - Clínica Veterinária</p>
-        </div>
+    <main class="main-container">
+        <section class="options-container">
+            <button class="btn-category direct-action" data-title="Novo Funcionário" data-template="tmpl-cadastrar-funcionario">
+                Cadastrar Funcionário
+            </button>
+            <button class="btn-category direct-action" data-title="Nova Vacina" data-template="tmpl-cadastrar-vacina">
+                Cadastrar Vacina
+            </button>
+            <button class="btn-category direct-action" data-title="Painel de Relatórios" data-template="tmpl-relatorios">
+                Acessar Relatórios
+            </button>
+        </section>
 
-        <!-- Chat Area -->
-        <div class="chat-area" id="chatArea">
-            <div class="message assistant">
-                <div class="label">🤖 Assistente</div>
-                <div class="text">Olá! Sou o assistente da PatasFelizes. Como posso ajudar você hoje? 🐶🐱</div>
+        <section id="dynamic-panel" class="panel-container">
+            <div class="panel-header">
+                <h2 id="panel-title">Título</h2>
+                <button id="close-panel" class="btn-close">&times;</button>
+            </div>
+
+            <div id="panel-dynamic-body" class="panel-body"></div>
+        </section>
+    </main>
+
+    <template id="tmpl-cadastrar-funcionario">
+        <form class="modal-form">
+            <input type="text" name="nomeVeterinario" placeholder="Nome Completo do Funcionário" required>
+            <select name="cargo" required>
+                <option value="" disabled selected>Cargo...</option>
+                <option>Veterinário(a)</option>
+                <option>Atendente / Recepção</option>
+                <option>Banho & Tosa</option>
+            </select>
+            <input type="text" name="crmv" placeholder="CRMV (Apenas para Veterinários)">
+            <input type="email" name="email" placeholder="E-mail de Acesso" required>
+            <input type="password" name="senha" placeholder="Senha Temporária" required>
+
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary close-panel-action">Cancelar</button>
+                <button type="button" class="btn-primary close-panel-action">Salvar Funcionário</button>
+            </div>
+        </form>
+    </template>
+
+    <template id="tmpl-cadastrar-vacina">
+        <form class="modal-form">
+            <input type="text" placeholder="Nome da Vacina (Ex: V10, Antirrábica)" required>
+            <select required>
+                <option value="" disabled selected>Espécie Alvo...</option>
+                <option>Canina</option>
+                <option>Felina</option>
+                <option>Ambos</option>
+            </select>
+            <input type="text" placeholder="Intervalo de Doses (Ex: Anual, 21 dias)" required>
+
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary close-panel-action">Cancelar</button>
+                <button type="button" class="btn-primary close-panel-action">Salvar Vacina</button>
+            </div>
+        </form>
+    </template>
+
+    <template id="tmpl-relatorios">
+        <div class="list-container">
+            <div class="filter-bar" style="flex-wrap: wrap;">
+                <input type="date" title="Data de Início" required>
+                <input type="date" title="Data de Fim" required>
+                <select id="report-type">
+                    <option value="pets">Pets/Raças mais frequentes</option>
+                    <option value="motivos">Motivos de consulta frequentes</option>
+                    <option value="vacinas">Vacinas mais aplicadas</option>
+                </select>
+                <button type="button" class="btn-primary" id="btn-gerar-relatorio">Gerar</button>
+            </div>
+
+            <ul class="data-list" id="report-results">
+                <li class="data-item" style="justify-content: center; color: var(--text-muted);">
+                    Selecione as datas e o tipo de relatório, depois clique em "Gerar".
+                </li>
+            </ul>
+
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary close-panel-action">Fechar Painel</button>
             </div>
         </div>
+    </template>
 
-        <!-- Input Area -->
-        <div class="input-area">
-            <input 
-                type="text" 
-                id="mensagemInput" 
-                placeholder="Digite sua mensagem..."
-                onkeypress="if(event.key === 'Enter') enviarMensagem()"
-            />
-            <button id="enviarBtn" onclick="enviarMensagem()">
-                Enviar ➤
-            </button>
-        </div>
-
-        <!-- Quick Buttons -->
-        <div class="quick-buttons">
-            <button onclick="enviarMensagemRapida('Busque o cliente 2')">🔍 Buscar cliente 2</button>
-            <button onclick="enviarMensagemRapida('Quero agendar uma consulta para o animal 1 com o veterinário 1')">📅 Agendar consulta</button>
-            <button onclick="enviarMensagemRapida('Verifique os horários disponíveis do veterinário 1')">⏰ Verificar horários</button>
-            <button onclick="enviarMensagemRapida('Busque atendimentos do animal 1')">🏥 Atendimentos</button>
-        </div>
-
-        <!-- Status -->
-        <div class="status" id="status">✅ Pronto para conversar</div>
-    </div>
-
-    <script>
-        // 🔥 URL DA SUA API
-        const API_URL = 'http://localhost:8080/api/gemini/perguntar';
-
-        /**
-         * Envia a mensagem para o Gemini
-         */
-        async function enviarMensagem() {
-            const input = document.getElementById('mensagemInput');
-            const mensagem = input.value.trim();
-
-            if (!mensagem) {
-                alert('Por favor, digite uma mensagem!');
-                return;
-            }
-
-            input.value = '';
-            adicionarMensagem('user', mensagem);
-
-            const btn = document.getElementById('enviarBtn');
-            btn.disabled = true;
-            btn.textContent = '⏳ ...';
-
-            const status = document.getElementById('status');
-
-            try {
-                // 🔥 Mostra "Pensando..."
-                const msgPensando = adicionarMensagemSystem('🧠 IA está pensando...');
-                status.innerHTML = '<span class="badge executing">⏳ Processando...</span>';
-
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        mensagem: mensagem,
-                        temperatura: 0.5,
-                        maxTokens: 500
-                    })
-                });
-
-                if (!response.ok) {
-                    const text = await response.text();
-                    let erroMsg;
-                    try {
-                        const json = JSON.parse(text);
-                        erroMsg = json.resposta || json.mensagem || text;
-                    } catch {
-                        erroMsg = text || `Erro ${response.status}`;
-                    }
-                    throw new Error(erroMsg);
-                }
-
-                const resultado = await response.json();
-
-                // 🔥 Remove a mensagem de "Pensando..."
-                removerMensagem(msgPensando);
-
-                // 🔥 Mostra o que aconteceu (função chamada, etc.)
-                if (resultado.acaoRealizada && resultado.acaoRealizada !== 'nenhuma') {
-                    // Mostra que uma função foi chamada
-                    const msgFuncao = adicionarMensagemSystem(`🔄 Executando: ${resultado.acaoRealizada}`);
-                    
-                    // Pequeno delay para mostrar a mensagem
-                    await sleep(800);
-                    removerMensagem(msgFuncao);
-                }
-
-                // 🔥 Mostra a resposta final
-                adicionarMensagem('assistant', resultado.resposta);
-
-                // Atualiza status
-                status.innerHTML = `
-                    ✅ Resposta em ${resultado.tempoProcessamento}ms 
-                    <span class="badge">${resultado.modeloUsado}</span>
-                    ${resultado.acaoRealizada !== 'nenhuma' ? `<span class="badge function">🔧 ${resultado.acaoRealizada}</span>` : ''}
-                `;
-
-            } catch (error) {
-                // Remove mensagens de loading
-                document.querySelectorAll('.message.system').forEach(el => {
-                    if (el.textContent.includes('Pensando') || el.textContent.includes('Executando')) {
-                        el.remove();
-                    }
-                });
-
-                let mensagemErro = error.message;
-                if (mensagemErro.includes('Failed to fetch') || mensagemErro.includes('NetworkError')) {
-                    mensagemErro = '❌ Não foi possível conectar à API. Verifique se o Spring Boot está rodando em localhost:8080.';
-                }
-
-                adicionarMensagem('assistant', mensagemErro);
-                status.innerHTML = `<span class="error">${mensagemErro}</span>`;
-            }
-
-            btn.disabled = false;
-            btn.textContent = 'Enviar ➤';
-            input.focus();
-        }
-
-        /**
-         * Sleep helper
-         */
-        function sleep(ms) {
-            return new Promise(resolve => setTimeout(resolve, ms));
-        }
-
-        /**
-         * Envia mensagem rápida
-         */
-        function enviarMensagemRapida(texto) {
-            document.getElementById('mensagemInput').value = texto;
-            enviarMensagem();
-        }
-
-        /**
-         * Adiciona uma mensagem no chat
-         */
-        function adicionarMensagem(tipo, texto) {
-            const chat = document.getElementById('chatArea');
-
-            const div = document.createElement('div');
-            div.className = `message ${tipo}`;
-
-            const label = document.createElement('div');
-            label.className = 'label';
-            label.textContent = tipo === 'user' ? '👤 Você' : '🤖 Assistente';
-
-            const textDiv = document.createElement('div');
-            textDiv.className = 'text';
-            
-            // Quebra de linha para melhor legibilidade
-            textDiv.innerHTML = texto.replace(/\n/g, '<br>');
-
-            div.appendChild(label);
-            div.appendChild(textDiv);
-            chat.appendChild(div);
-
-            chat.scrollTop = chat.scrollHeight;
-            return div;
-        }
-
-        /**
-         * Adiciona mensagem do sistema (status)
-         */
-        function adicionarMensagemSystem(texto) {
-            const chat = document.getElementById('chatArea');
-
-            const div = document.createElement('div');
-            div.className = 'message system';
-
-            const textDiv = document.createElement('div');
-            textDiv.className = 'text';
-            textDiv.innerHTML = texto;
-
-            div.appendChild(textDiv);
-            chat.appendChild(div);
-            chat.scrollTop = chat.scrollHeight;
-
-            return div;
-        }
-
-        /**
-         * Remove uma mensagem
-         */
-        function removerMensagem(element) {
-            if (element && element.parentNode) {
-                element.remove();
-            }
-        }
-
-        // Permite enviar com Enter
-        document.getElementById('mensagemInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                enviarMensagem();
-            }
-        });
-    </script>
-
+    <script src="scripts/api.js"></script>
+    <script src="scripts/navbar-loader.js"></script>
+    <script src="scripts/gestor.js"></script>
 </body>
 </html>

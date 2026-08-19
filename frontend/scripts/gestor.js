@@ -6,14 +6,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const panelTitle = document.getElementById("panel-title");
     const panelDynamicBody = document.getElementById("panel-dynamic-body");
 
-    // Lógica para abrir os painéis
     actionButtons.forEach(btn => {
         btn.addEventListener("click", () => {
             const title = btn.getAttribute("data-title");
             const templateId = btn.getAttribute("data-template");
 
             panelTitle.innerText = title;
-            panelDynamicBody.innerHTML = ""; 
+            panelDynamicBody.innerHTML = "";
 
             const template = document.getElementById(templateId);
             if (template) {
@@ -23,19 +22,54 @@ document.addEventListener("DOMContentLoaded", () => {
             panel.classList.add("active-panel");
             setTimeout(() => panel.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
 
-            // SE o painel aberto for o de relatórios, ativa a lógica inteligente dele
             if (templateId === "tmpl-relatorios") {
                 setupReportLogic();
+            }
+            if (templateId === "tmpl-cadastrar-funcionario") {
+                configurarCadastroFuncionario();
             }
         });
     });
 
-    // Lógica para fechar o painel
     const closePanel = () => panel.classList.remove("active-panel");
     document.getElementById("close-panel")?.addEventListener("click", closePanel);
     panel.addEventListener("click", (e) => {
         if (e.target.closest(".close-panel-action")) closePanel();
     });
+
+    // ==========================================================================
+    // LIGAÇÃO COM A API - Cadastro de Funcionário (Veterinário)
+    // ==========================================================================
+    function configurarCadastroFuncionario() {
+        const form = panelDynamicBody.querySelector("form");
+        const btnSalvar = form.querySelector(".btn-primary");
+
+        btnSalvar.addEventListener("click", async () => {
+            if (!form.reportValidity()) return;
+
+            const cargo = form.cargo.value;
+
+            // Hoje o back-end só tem endpoint de cadastro para Veterinário
+            if (cargo !== "Veterinário(a)") {
+                alert(`⚠️ Cadastro de "${cargo}" ainda não está disponível no back-end.\nApenas Veterinário(a) pode ser cadastrado.`);
+                return;
+            }
+
+            const dados = {
+                nome: form.nomeVeterinario.value.trim(),
+                CRMV: form.crmv.value.trim() || "",
+                telefone: form.email.value.trim() || ""  // Usa email como telefone se não houver campo específico
+            };
+
+            try {
+                const criado = await api.post("/veterinarios", dados);
+                alert(`✅ Veterinário cadastrado com sucesso! ID: ${criado.nroVeterinario || 'N/A'}`);
+                form.reset();
+            } catch (err) {
+                mostrarErroApi(err);
+            }
+        });
+    }
 
     // ==========================================================================
     // SIMULADOR DO GERADOR DE RELATÓRIOS
@@ -47,33 +81,64 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (!btnGerar || !selectType || !resultsList) return;
 
-        // Banco de dados simulado para os relatórios
+        // Dados mockados (porque não há endpoint de relatórios)
         const mockData = {
             pets: [
-                { titulo: "Cachorro - SRD (Vira-lata)", métrica: "145 atendimentos" },
-                { titulo: "Cachorro - Shih Tzu", métrica: "82 atendimentos" },
-                { titulo: "Gato - SRD", métrica: "76 atendimentos" }
+                { titulo: "Cachorro - SRD (Vira-lata)", metrica: "145 atendimentos" },
+                { titulo: "Cachorro - Shih Tzu", metrica: "82 atendimentos" },
+                { titulo: "Gato - SRD", metrica: "76 atendimentos" }
             ],
             motivos: [
-                { titulo: "Vacinação de Rotina", métrica: "120 consultas" },
-                { titulo: "Problemas Dermatológicos", métrica: "65 consultas" },
-                { titulo: "Check-up Anual", métrica: "40 consultas" }
+                { titulo: "Vacinação de Rotina", metrica: "120 consultas" },
+                { titulo: "Problemas Dermatológicos", metrica: "65 consultas" },
+                { titulo: "Check-up Anual", metrica: "40 consultas" }
             ],
             vacinas: [
-                { titulo: "V10 (Quíntupla Canina)", métrica: "98 doses" },
-                { titulo: "Antirrábica", métrica: "85 doses" },
-                { titulo: "V4 (Quádrupla Felina)", métrica: "42 doses" }
+                { titulo: "V10 (Quíntupla Canina)", metrica: "98 doses" },
+                { titulo: "Antirrábica", metrica: "85 doses" },
+                { titulo: "V4 (Quádrupla Felina)", metrica: "42 doses" }
             ]
         };
 
-        // Quando o gestor clica em "Gerar"
-        btnGerar.addEventListener("click", () => {
+        btnGerar.addEventListener("click", async () => {
             const selectedReport = selectType.value;
-            const dataToShow = mockData[selectedReport];
+            
+            // Tenta buscar dados reais se possível
+            try {
+                const atendimentos = await api.get("/atendimentos");
+                if (atendimentos && atendimentos.length > 0) {
+                    // Gera relatório real baseado nos atendimentos
+                    const tipos = {};
+                    atendimentos.forEach(a => {
+                        const tipo = a.nroTipoAtendimento || 'desconhecido';
+                        tipos[tipo] = (tipos[tipo] || 0) + 1;
+                    });
+                    
+                    resultsList.innerHTML = "";
+                    Object.entries(tipos).forEach(([tipo, count]) => {
+                        const nomeTipo = tipo === 1 ? 'Consultas' : tipo === 2 ? 'Vacinações' : 'Outros';
+                        resultsList.innerHTML += `
+                            <li class="data-item">
+                                <div class="item-info">
+                                    <strong>${nomeTipo}</strong>
+                                </div>
+                                <div class="item-actions">
+                                    <span style="background-color: var(--color-teal-light); color: var(--color-teal-dark); font-weight: 700; padding: 6px 12px; border-radius: var(--radius-lg);">
+                                        ${count} atendimentos
+                                    </span>
+                                </div>
+                            </li>
+                        `;
+                    });
+                    return;
+                }
+            } catch (e) {
+                // Fallback para mock
+            }
 
-            resultsList.innerHTML = ""; // Limpa a mensagem padrão de "Selecione..."
-
-            // Injeta as linhas de resultado do relatório escolhido
+            // Usa dados mockados
+            const dataToShow = mockData[selectedReport] || mockData.pets;
+            resultsList.innerHTML = "";
             dataToShow.forEach(item => {
                 resultsList.innerHTML += `
                     <li class="data-item">
@@ -81,7 +146,7 @@ document.addEventListener("DOMContentLoaded", () => {
                             <strong>${item.titulo}</strong>
                         </div>
                         <div class="item-actions">
-                            <span style="background-color: var(--bg-item-hover); color: var(--text-main); font-weight: 600; padding: 6px 12px; border-radius: var(--radius-buttons-sm);">
+                            <span style="background-color: var(--color-teal-light); color: var(--color-teal-dark); font-weight: 700; padding: 6px 12px; border-radius: var(--radius-lg);">
                                 ${item.métrica}
                             </span>
                         </div>
