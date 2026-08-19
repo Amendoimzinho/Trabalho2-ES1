@@ -123,8 +123,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       try {
         const resposta = await api.consultarGemini(prompt);
-        // Exibe o texto retornado pelo ControllerGemini
-        outputIa.textContent = resposta.resposta || resposta.mensagem || JSON.stringify(resposta, null, 2);
+        const textoFinal = resposta.resposta || resposta.mensagem || '';
+        
+        // Converte quebras de linha e negritos para exibição amigável em HTML
+        outputIa.innerHTML = textoFinal
+          .replace(/\n/g, '<br>')
+          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
       } catch (err) {
         outputIa.innerHTML = `<span style="color: var(--danger);">Não foi possível obter resposta da IA: ${err.message}</span>`;
       } finally {

@@ -132,12 +132,25 @@ const api = {
   // 5. ASSISTENTE DE IA (GEMINI)
   // ==========================================
   async consultarGemini(promptTexto) {
-    const res = await fetch(`${API_BASE_URL}/gemini`, {
+    const prompt = {
+      mensagem: promptTexto,
+      temperatura: 0.7,
+      maxTokens: 800 // Aumentado para evitar corte de respostas longas
+    };
+
+    const res = await fetch(`${API_BASE_URL}/gemini/perguntar`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt: promptTexto })
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(prompt)
     });
-    if (!res.ok) throw new Error('Erro na comunicação com o assistente inteligente');
+
+    if (!res.ok) {
+      const errorBody = await res.json().catch(() => ({}));
+      throw new Error(errorBody.mensagem || 'Erro na comunicação com o assistente inteligente');
+    }
+    
     return await res.json();
-  }
+  } 
 };
