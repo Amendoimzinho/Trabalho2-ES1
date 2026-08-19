@@ -16,7 +16,7 @@ import com.patasfelizes.api.model.Cliente;
 import com.patasfelizes.api.service.ServiceClientes;
 
 @RestController
-@RequestMapping("/api/clientes")
+@RequestMapping("/clientes")
 public class ControllerClientes {
 
     @Autowired

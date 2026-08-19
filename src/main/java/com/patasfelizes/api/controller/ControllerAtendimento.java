@@ -16,7 +16,7 @@ import com.patasfelizes.api.model.Atendimento;
 import com.patasfelizes.api.service.ServiceAtendimento;
 
 @RestController
-@RequestMapping("/api/atendimentos")
+@RequestMapping("/atendimentos")
 public class ControllerAtendimento {
 
     @Autowired

@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:8080';
+const API_BASE_URL = 'http://localhost:8080/api';
 
 const api = {
   // ==========================================
@@ -28,15 +28,18 @@ const api = {
     return await res.json();
   },
 
-  async criarCliente(cliente) {
-    const res = await fetch(`${API_BASE_URL}/clientes`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(cliente)
-    });
-    if (!res.ok) throw new Error('Erro ao salvar cliente');
-    return await res.json();
-  },
+    async criarCliente(cliente) {
+        const res = await fetch(`${API_BASE_URL}/clientes`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(cliente)
+        });
+        if (!res.ok) {
+            const erroServidor = await res.text();
+            throw new Error(`Status ${res.status}: ${erroServidor || res.statusText}`);
+        }
+        return await res.json();
+    },
 
   // ==========================================
   // 2. PETS / ANIMAIS

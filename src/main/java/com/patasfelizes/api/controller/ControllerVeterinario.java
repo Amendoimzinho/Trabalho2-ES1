@@ -15,7 +15,7 @@ import com.patasfelizes.api.model.Veterinario;
 import com.patasfelizes.api.service.ServiceVeterinario;
  
 @RestController
-@RequestMapping("/api/veterinarios")
+@RequestMapping("/veterinarios")
 public class ControllerVeterinario {
  
     @Autowired
