@@ -1,158 +1,138 @@
-// scripts/gestor.js
+document.addEventListener('DOMContentLoaded', async () => {
+  // 1. NAVEGAÇÃO ENTRE ABAS
+  const navButtons = document.querySelectorAll('.subnav-btn');
+  const sections = document.querySelectorAll('.content-section');
 
-document.addEventListener("DOMContentLoaded", () => {
-    const actionButtons = document.querySelectorAll(".direct-action");
-    const panel = document.getElementById("dynamic-panel");
-    const panelTitle = document.getElementById("panel-title");
-    const panelDynamicBody = document.getElementById("panel-dynamic-body");
+  navButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      navButtons.forEach((b) => b.classList.remove('active'));
+      sections.forEach((s) => s.classList.remove('active'));
 
-    actionButtons.forEach(btn => {
-        btn.addEventListener("click", () => {
-            const title = btn.getAttribute("data-title");
-            const templateId = btn.getAttribute("data-template");
-
-            panelTitle.innerText = title;
-            panelDynamicBody.innerHTML = "";
-
-            const template = document.getElementById(templateId);
-            if (template) {
-                panelDynamicBody.appendChild(template.content.cloneNode(true));
-            }
-
-            panel.classList.add("active-panel");
-            setTimeout(() => panel.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
-
-            if (templateId === "tmpl-relatorios") {
-                setupReportLogic();
-            }
-            if (templateId === "tmpl-cadastrar-funcionario") {
-                configurarCadastroFuncionario();
-            }
-        });
+      btn.classList.add('active');
+      const targetId = btn.getAttribute('data-target');
+      const targetSection = document.getElementById(targetId);
+      if (targetSection) targetSection.classList.add('active');
     });
+  });
 
-    const closePanel = () => panel.classList.remove("active-panel");
-    document.getElementById("close-panel")?.addEventListener("click", closePanel);
-    panel.addEventListener("click", (e) => {
-        if (e.target.closest(".close-panel-action")) closePanel();
-    });
+  // 2. CARREGAR DADOS GERAIS E KPIs
+  async function carregarDashboard() {
+    try {
+      // Busca paralela para velocidade
+      const [clientes, vets, atendimentos, pets] = await Promise.all([
+        api.listarClientes().catch(() => []),
+        api.listarVeterinarios().catch(() => []),
+        api.listarAtendimentos().catch(() => []),
+        api.listarPets().catch(() => [])
+      ]);
 
-    // ==========================================================================
-    // LIGAÇÃO COM A API - Cadastro de Funcionário (Veterinário)
-    // ==========================================================================
-    function configurarCadastroFuncionario() {
-        const form = panelDynamicBody.querySelector("form");
-        const btnSalvar = form.querySelector(".btn-primary");
+      // Atualiza KPIs
+      document.getElementById('kpi-total-clientes').textContent = clientes.length || 0;
+      document.getElementById('kpi-total-pets').textContent = pets.length || 0;
+      document.getElementById('kpi-total-vets').textContent = vets.length || 0;
+      document.getElementById('kpi-total-atendimentos').textContent = atendimentos.length || 0;
 
-        btnSalvar.addEventListener("click", async () => {
-            if (!form.reportValidity()) return;
+      // Renderiza tabelas
+      renderizarTabelaUltimos(atendimentos);
+      renderizarTabelaTodos(atendimentos);
+      renderizarTabelaEquipe(vets);
 
-            const cargo = form.cargo.value;
+    } catch (err) {
+      console.error('Erro ao montar o painel do gestor:', err);
+    }
+  }
 
-            // Hoje o back-end só tem endpoint de cadastro para Veterinário
-            if (cargo !== "Veterinário(a)") {
-                alert(`⚠️ Cadastro de "${cargo}" ainda não está disponível no back-end.\nApenas Veterinário(a) pode ser cadastrado.`);
-                return;
-            }
+  // 3. RENDERIZAR TABELAS
+  function renderizarTabelaUltimos(lista) {
+    const tbody = document.querySelector('#tabela-ultimos-atendimentos tbody');
+    if (!tbody) return;
 
-            const dados = {
-                nome: form.nomeVeterinario.value.trim(),
-                CRMV: form.crmv.value.trim() || "",
-                telefone: form.email.value.trim() || ""  // Usa email como telefone se não houver campo específico
-            };
-
-            try {
-                const criado = await api.post("/veterinarios", dados);
-                alert(`✅ Veterinário cadastrado com sucesso! ID: ${criado.nroVeterinario || 'N/A'}`);
-                form.reset();
-            } catch (err) {
-                mostrarErroApi(err);
-            }
-        });
+    if (!lista || lista.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Nenhum atendimento recente.</td></tr>';
+      return;
     }
 
-    // ==========================================================================
-    // SIMULADOR DO GERADOR DE RELATÓRIOS
-    // ==========================================================================
-    function setupReportLogic() {
-        const btnGerar = document.getElementById("btn-gerar-relatorio");
-        const selectType = document.getElementById("report-type");
-        const resultsList = document.getElementById("report-results");
+    // Pega os 5 mais recentes
+    const ultimos = lista.slice(-5).reverse();
+    tbody.innerHTML = ultimos.map(a => `
+      <tr>
+        <td>#${a.id || a.idAtendimento || '-'}</td>
+        <td>${a.data || 'Hoje'}</td>
+        <td><span class="badge-tag">${a.tipo || 'Consulta'}</span></td>
+        <td>${a.nomeAnimal || a.animal?.nome || 'Pet'}</td>
+        <td>Dr(a). ${a.nomeVeterinario || a.veterinario?.nome || 'Veterinário'}</td>
+      </tr>
+    `).join('');
+  }
 
-        if (!btnGerar || !selectType || !resultsList) return;
+  function renderizarTabelaTodos(lista) {
+    const tbody = document.querySelector('#tabela-todos-atendimentos tbody');
+    if (!tbody) return;
 
-        // Dados mockados (porque não há endpoint de relatórios)
-        const mockData = {
-            pets: [
-                { titulo: "Cachorro - SRD (Vira-lata)", metrica: "145 atendimentos" },
-                { titulo: "Cachorro - Shih Tzu", metrica: "82 atendimentos" },
-                { titulo: "Gato - SRD", metrica: "76 atendimentos" }
-            ],
-            motivos: [
-                { titulo: "Vacinação de Rotina", metrica: "120 consultas" },
-                { titulo: "Problemas Dermatológicos", metrica: "65 consultas" },
-                { titulo: "Check-up Anual", metrica: "40 consultas" }
-            ],
-            vacinas: [
-                { titulo: "V10 (Quíntupla Canina)", metrica: "98 doses" },
-                { titulo: "Antirrábica", metrica: "85 doses" },
-                { titulo: "V4 (Quádrupla Felina)", metrica: "42 doses" }
-            ]
-        };
-
-        btnGerar.addEventListener("click", async () => {
-            const selectedReport = selectType.value;
-            
-            // Tenta buscar dados reais se possível
-            try {
-                const atendimentos = await api.get("/atendimentos");
-                if (atendimentos && atendimentos.length > 0) {
-                    // Gera relatório real baseado nos atendimentos
-                    const tipos = {};
-                    atendimentos.forEach(a => {
-                        const tipo = a.nroTipoAtendimento || 'desconhecido';
-                        tipos[tipo] = (tipos[tipo] || 0) + 1;
-                    });
-                    
-                    resultsList.innerHTML = "";
-                    Object.entries(tipos).forEach(([tipo, count]) => {
-                        const nomeTipo = tipo === 1 ? 'Consultas' : tipo === 2 ? 'Vacinações' : 'Outros';
-                        resultsList.innerHTML += `
-                            <li class="data-item">
-                                <div class="item-info">
-                                    <strong>${nomeTipo}</strong>
-                                </div>
-                                <div class="item-actions">
-                                    <span style="background-color: var(--color-teal-light); color: var(--color-teal-dark); font-weight: 700; padding: 6px 12px; border-radius: var(--radius-lg);">
-                                        ${count} atendimentos
-                                    </span>
-                                </div>
-                            </li>
-                        `;
-                    });
-                    return;
-                }
-            } catch (e) {
-                // Fallback para mock
-            }
-
-            // Usa dados mockados
-            const dataToShow = mockData[selectedReport] || mockData.pets;
-            resultsList.innerHTML = "";
-            dataToShow.forEach(item => {
-                resultsList.innerHTML += `
-                    <li class="data-item">
-                        <div class="item-info">
-                            <strong>${item.titulo}</strong>
-                        </div>
-                        <div class="item-actions">
-                            <span style="background-color: var(--color-teal-light); color: var(--color-teal-dark); font-weight: 700; padding: 6px 12px; border-radius: var(--radius-lg);">
-                                ${item.métrica}
-                            </span>
-                        </div>
-                    </li>
-                `;
-            });
-        });
+    if (!lista || lista.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Nenhum registro encontrado.</td></tr>';
+      return;
     }
+
+    tbody.innerHTML = lista.map(a => `
+      <tr>
+        <td>#${a.id || a.idAtendimento || '-'}</td>
+        <td>${a.data || '-'} ${a.horario ? 'às ' + a.horario : ''}</td>
+        <td><span class="badge-tag">${a.tipo || 'Consulta'}</span></td>
+        <td>${a.nomeAnimal || a.animal?.nome || '-'}</td>
+        <td>Dr(a). ${a.nomeVeterinario || a.veterinario?.nome || '-'}</td>
+      </tr>
+    `).join('');
+  }
+
+  function renderizarTabelaEquipe(vets) {
+    const tbody = document.querySelector('#tabela-equipe-vets tbody');
+    if (!tbody) return;
+
+    if (!vets || vets.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">Nenhum veterinário cadastrado.</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = vets.map(v => `
+      <tr>
+        <td>#${v.id || v.idVeterinario || '-'}</td>
+        <td><strong>Dr(a). ${v.nome || v.nomeVeterinario || '-'}</strong></td>
+        <td><span class="badge-tag">${v.crmv || 'Não informado'}</span></td>
+        <td><span style="color: var(--success); font-weight: 600;">● Ativo</span></td>
+      </tr>
+    `).join('');
+  }
+
+  // 4. INTEGRAÇÃO COM IA GEMINI
+  const btnIa = document.getElementById('btn-gerar-insights');
+  const promptInput = document.getElementById('prompt-ia');
+  const outputIa = document.getElementById('saida-ia');
+
+  if (btnIa) {
+    btnIa.addEventListener('click', async () => {
+      const prompt = promptInput.value.trim();
+      if (!prompt) {
+        alert('Digite uma pergunta ou instrução para a IA analisar.');
+        return;
+      }
+
+      outputIa.style.display = 'block';
+      outputIa.innerHTML = '<em>Consultando Gemini e analisando métricas da clínica... aguarde um instante.</em>';
+      btnIa.disabled = true;
+
+      try {
+        const resposta = await api.consultarGemini(prompt);
+        // Exibe o texto retornado pelo ControllerGemini
+        outputIa.textContent = resposta.resposta || resposta.mensagem || JSON.stringify(resposta, null, 2);
+      } catch (err) {
+        outputIa.innerHTML = `<span style="color: var(--danger);">Não foi possível obter resposta da IA: ${err.message}</span>`;
+      } finally {
+        btnIa.disabled = false;
+      }
+    });
+  }
+
+  // Inicializa o dashboard
+  carregarDashboard();
 });

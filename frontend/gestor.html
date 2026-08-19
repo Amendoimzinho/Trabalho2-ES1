@@ -1,102 +1,206 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Patas Felizes - Área do Gestor</title>
-    <link rel="stylesheet" href="styles/main.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Patinhas Felizes - Painel do Gestor</title>
+  <link rel="stylesheet" href="styles/main.css">
+  <style>
+    /* Estilos específicos para o dashboard de gestão */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+      margin-bottom: 2rem;
+    }
+    .kpi-card {
+      background: var(--card-bg);
+      border-radius: 12px;
+      padding: 1.5rem;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+      border-top: 4px solid var(--primary-blue);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .kpi-card.highlight {
+      border-top-color: var(--primary-yellow);
+    }
+    .kpi-title {
+      font-size: 0.85rem;
+      color: var(--muted-text);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .kpi-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--dark-text);
+    }
+    .ai-box {
+      background: linear-gradient(135deg, var(--light-blue) 0%, var(--light-yellow) 100%);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .ai-output {
+      background: #FFFFFF;
+      border-radius: 8px;
+      padding: 1rem;
+      margin-top: 1rem;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      border: 1px solid var(--border-color);
+      min-height: 80px;
+      white-space: pre-wrap;
+    }
+  </style>
 </head>
 <body>
-    <header id="global-header" class="header-container"></header>
 
-    <main class="main-container">
-        <section class="options-container">
-            <button class="btn-category direct-action" data-title="Novo Funcionário" data-template="tmpl-cadastrar-funcionario">
-                Cadastrar Funcionário
-            </button>
-            <button class="btn-category direct-action" data-title="Nova Vacina" data-template="tmpl-cadastrar-vacina">
-                Cadastrar Vacina
-            </button>
-            <button class="btn-category direct-action" data-title="Painel de Relatórios" data-template="tmpl-relatorios">
-                Acessar Relatórios
-            </button>
-        </section>
+  <!-- BARRA SUPERIOR -->
+  <header class="navbar">
+    <a href="#" class="navbar-brand">
+      <span class="brand-badge">🐾</span> Patinhas <span style="color: var(--primary-yellow);">Felizes</span>
+    </a>
+    <nav class="navbar-roles">
+      <a href="atendente.html" class="role-btn">Atendente</a>
+      <a href="cliente.html" class="role-btn">Cliente</a>
+      <a href="gestor.html" class="role-btn active">Gestor</a>
+      <a href="veterinario.html" class="role-btn">Veterinário</a>
+    </nav>
+  </header>
 
-        <section id="dynamic-panel" class="panel-container">
-            <div class="panel-header">
-                <h2 id="panel-title">Título</h2>
-                <button id="close-panel" class="btn-close">&times;</button>
-            </div>
+  <!-- SUB-BARRA DE GESTÃO -->
+  <nav class="subnav-container">
+    <button class="subnav-btn active" data-target="secao-dashboard">📊 Visão Geral</button>
+    <button class="subnav-btn" data-target="secao-relatorio-atendimentos">📅 Relatório de Atendimentos</button>
+    <button class="subnav-btn" data-target="secao-equipe">🩺 Corpo Clínico</button>
+    <button class="subnav-btn" data-target="secao-insights-ia">✨ Insights com IA</button>
+  </nav>
 
-            <div id="panel-dynamic-body" class="panel-body"></div>
-        </section>
-    </main>
+  <main class="main-container">
 
-    <template id="tmpl-cadastrar-funcionario">
-        <form class="modal-form">
-            <input type="text" name="nomeVeterinario" placeholder="Nome Completo do Funcionário" required>
-            <select name="cargo" required>
-                <option value="" disabled selected>Cargo...</option>
-                <option>Veterinário(a)</option>
-                <option>Atendente / Recepção</option>
-                <option>Banho & Tosa</option>
-            </select>
-            <input type="text" name="crmv" placeholder="CRMV (Apenas para Veterinários)">
-            <input type="email" name="email" placeholder="E-mail de Acesso" required>
-            <input type="password" name="senha" placeholder="Senha Temporária" required>
-
-            <div class="modal-footer">
-                <button type="button" class="btn-secondary close-panel-action">Cancelar</button>
-                <button type="button" class="btn-primary close-panel-action">Salvar Funcionário</button>
-            </div>
-        </form>
-    </template>
-
-    <template id="tmpl-cadastrar-vacina">
-        <form class="modal-form">
-            <input type="text" placeholder="Nome da Vacina (Ex: V10, Antirrábica)" required>
-            <select required>
-                <option value="" disabled selected>Espécie Alvo...</option>
-                <option>Canina</option>
-                <option>Felina</option>
-                <option>Ambos</option>
-            </select>
-            <input type="text" placeholder="Intervalo de Doses (Ex: Anual, 21 dias)" required>
-
-            <div class="modal-footer">
-                <button type="button" class="btn-secondary close-panel-action">Cancelar</button>
-                <button type="button" class="btn-primary close-panel-action">Salvar Vacina</button>
-            </div>
-        </form>
-    </template>
-
-    <template id="tmpl-relatorios">
-        <div class="list-container">
-            <div class="filter-bar" style="flex-wrap: wrap;">
-                <input type="date" title="Data de Início" required>
-                <input type="date" title="Data de Fim" required>
-                <select id="report-type">
-                    <option value="pets">Pets/Raças mais frequentes</option>
-                    <option value="motivos">Motivos de consulta frequentes</option>
-                    <option value="vacinas">Vacinas mais aplicadas</option>
-                </select>
-                <button type="button" class="btn-primary" id="btn-gerar-relatorio">Gerar</button>
-            </div>
-
-            <ul class="data-list" id="report-results">
-                <li class="data-item" style="justify-content: center; color: var(--text-muted);">
-                    Selecione as datas e o tipo de relatório, depois clique em "Gerar".
-                </li>
-            </ul>
-
-            <div class="modal-footer">
-                <button type="button" class="btn-secondary close-panel-action">Fechar Painel</button>
-            </div>
+    <!-- 1. SEÇÃO DASHBOARD (VISÃO GERAL) -->
+    <section id="secao-dashboard" class="content-section active">
+      
+      <!-- CARDS DE MÉTRICAS -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <span class="kpi-title">Total de Clientes</span>
+          <span id="kpi-total-clientes" class="kpi-value">--</span>
         </div>
-    </template>
+        <div class="kpi-card highlight">
+          <span class="kpi-title">Pets Cadastrados</span>
+          <span id="kpi-total-pets" class="kpi-value">--</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-title">Veterinários Ativos</span>
+          <span id="kpi-total-vets" class="kpi-value">--</span>
+        </div>
+        <div class="kpi-card highlight">
+          <span class="kpi-title">Total de Atendimentos</span>
+          <span id="kpi-total-atendimentos" class="kpi-value">--</span>
+        </div>
+      </div>
 
-    <script src="scripts/api.js"></script>
-    <script src="scripts/navbar-loader.js"></script>
-    <script src="scripts/gestor.js"></script>
+      <!-- ÚLTIMAS ATIVIDADES -->
+      <div class="card-box">
+        <div class="card-header">
+          <h2>Últimos Atendimentos Registrados</h2>
+        </div>
+        <div class="table-responsive">
+          <table id="tabela-ultimos-atendimentos">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Data</th>
+                <th>Tipo</th>
+                <th>Animal</th>
+                <th>Veterinário</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td colspan="5" style="text-align: center;">Carregando resumo...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. SEÇÃO RELATÓRIO DE ATENDIMENTOS -->
+    <section id="secao-relatorio-atendimentos" class="content-section">
+      <div class="card-box">
+        <div class="card-header">
+          <h2>Relatório Completo de Atendimentos</h2>
+        </div>
+        <div class="table-responsive">
+          <table id="tabela-todos-atendimentos">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Data/Hora</th>
+                <th>Tipo de Atendimento</th>
+                <th>Paciente</th>
+                <th>Veterinário Responsável</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td colspan="5" style="text-align: center;">Carregando atendimentos...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. SEÇÃO EQUIPE VETERINÁRIA -->
+    <section id="secao-equipe" class="content-section">
+      <div class="card-box">
+        <div class="card-header">
+          <h2>Veterinários e Especialistas</h2>
+        </div>
+        <div class="table-responsive">
+          <table id="tabela-equipe-vets">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nome</th>
+                <th>CRMV</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td colspan="4" style="text-align: center;">Carregando equipe...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. SEÇÃO INSIGHTS COM GEMINI IA -->
+    <section id="secao-insights-ia" class="content-section">
+      <div class="ai-box">
+        <h2 style="color: var(--primary-blue); margin-bottom: 8px;">✨ Análise Inteligente da Clínica</h2>
+        <p style="color: var(--muted-text); font-size: 0.95rem; margin-bottom: 15px;">
+          Peça ao assistente inteligente para analisar o volume de atendimentos, sugerir melhorias operacionais ou resumir a movimentação geral da clínica.
+        </p>
+
+        <div class="form-group" style="margin-bottom: 12px;">
+          <textarea id="prompt-ia" rows="3" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); font-family: inherit; font-size: 0.95rem;" placeholder="Ex: Analise o número de atendimentos e sugira estratégias para aumentar o retorno de vacinação dos pets..."></textarea>
+        </div>
+
+        <button id="btn-gerar-insights" class="btn-primary-yellow">Gerar Análise com IA</button>
+
+        <div id="saida-ia" class="ai-output" style="display: none;"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="scripts/api.js"></script>
+  <script src="scripts/gestor.js"></script>
 </body>
 </html>

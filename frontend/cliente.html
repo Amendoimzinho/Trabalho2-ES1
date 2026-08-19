@@ -1,58 +1,124 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Patas Felizes - Área do Cliente</title>
-    <link rel="stylesheet" href="styles/main.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Patinhas Felizes - Área do Cliente</title>
+  <link rel="stylesheet" href="styles/main.css">
 </head>
 <body>
-    <header id="global-header" class="header-container"></header>
 
-    <main class="main-container">
-        <section class="options-container">
-            <!-- Sem tela de login/sessão ainda: os templates de auto-cadastro
-                 seguem comentados. Quando vocês tiverem autenticação, é só
-                 criar POST /api/clientes (self-cadastro) e um Controller de
-                 login, e reativar esses botões. -->
-            <button class="btn-category direct-action" data-title="Agendar Atendimento" data-template="tmpl-self-agendamento">
-                Agendar Atendimento
-            </button>
-        </section>
+  <!-- BARRA SUPERIOR -->
+  <header class="navbar">
+    <a href="#" class="navbar-brand">
+      <span class="brand-badge">🐾</span> Patinhas <span style="color: var(--primary-yellow);">Felizes</span>
+    </a>
+    <nav class="navbar-roles">
+      <a href="atendente.html" class="role-btn">Atendente</a>
+      <a href="cliente.html" class="role-btn active">Cliente</a>
+      <a href="gestor.html" class="role-btn">Gestor</a>
+      <a href="veterinario.html" class="role-btn">Veterinário</a>
+    </nav>
+  </header>
 
-        <section id="dynamic-panel" class="panel-container">
-            <div class="panel-header">
-                <h2 id="panel-title">Título</h2>
-                <button id="close-panel" class="btn-close">&times;</button>
+  <!-- ABAS CLIENTE -->
+  <nav class="subnav-container">
+    <button class="subnav-btn active" data-target="secao-meus-pets">🐶 Meus Pets</button>
+    <button class="subnav-btn" data-target="secao-agendar">📅 Agendar Consulta</button>
+    <button class="subnav-btn" data-target="secao-historico">📋 Histórico de Atendimentos</button>
+  </nav>
+
+  <main class="main-container">
+
+    <!-- IDENTIFICAÇÃO DO TUTOR (FILTRO POR CPF/ID) -->
+    <div class="card-box" style="margin-bottom: 1.5rem;">
+      <div style="display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap;">
+        <div class="form-group" style="flex: 1; min-width: 250px;">
+          <label for="input-cpf-filtro">Identificar Tutor por CPF ou ID:</label>
+          <input type="text" id="input-cpf-filtro" placeholder="Digite seu CPF cadastrado...">
+        </div>
+        <button id="btn-buscar-tutor" class="btn-primary-yellow" style="height: 42px;">Acessar Meus Dados</button>
+      </div>
+    </div>
+
+    <!-- 1. SEÇÃO MEUS PETS -->
+    <section id="secao-meus-pets" class="content-section active">
+      <div class="card-box">
+        <div class="card-header">
+          <h2>Meus Animais Cadastrados</h2>
+        </div>
+        <div id="grid-pets" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; margin-top: 15px;">
+          <p style="color: var(--muted-text);">Informe o CPF acima para carregar seus pets.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. SEÇÃO AGENDAR CONSULTA -->
+    <section id="secao-agendar" class="content-section">
+      <div class="card-box">
+        <div class="card-header">
+          <h2>Solicitar Novo Agendamento</h2>
+        </div>
+        <form id="form-agendamento">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="select-pet-agendamento">Selecione o Pet *</label>
+              <select id="select-pet-agendamento" required>
+                <option value="">Selecione um pet...</option>
+              </select>
             </div>
-
-            <div id="panel-dynamic-body" class="panel-body"></div>
-        </section>
-    </main>
-
-    <template id="tmpl-self-agendamento">
-        <form class="modal-form">
-            <select name="nomeAnimal" id="select-pet-agendamento" required>
-                <option value="" disabled selected>Carregando pets...</option>
-            </select>
-            <select name="motivo" required>
-                <option value="" disabled selected>Motivo da visita...</option>
-                <option>Consulta Geral</option>
-                <option>Vacina</option>
-                <option>Banho & Tosa</option>
-            </select>
-            <input type="date" name="data" required>
-            <input type="time" name="hora" required>
-
-            <div class="modal-footer">
-                <button type="button" class="btn-secondary close-panel-action">Cancelar</button>
-                <button type="button" class="btn-primary close-panel-action">Confirmar Agendamento</button>
+            <div class="form-group">
+              <label for="select-vet-agendamento">Veterinário *</label>
+              <select id="select-vet-agendamento" required>
+                <option value="">Selecione o profissional...</option>
+              </select>
             </div>
+            <div class="form-group">
+              <label for="data-agendamento">Data *</label>
+              <input type="date" id="data-agendamento" required>
+            </div>
+            <div class="form-group">
+              <label for="hora-agendamento">Horário *</label>
+              <input type="time" id="hora-agendamento" required>
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom: 15px;">
+            <label for="motivo-consulta">Motivo da Consulta / Sintomas</label>
+            <input type="text" id="motivo-consulta" placeholder="Ex: Vacinação de rotina, tosse persistente...">
+          </div>
+          <button type="submit" class="btn-primary-yellow">Confirmar Agendamento</button>
         </form>
-    </template>
+      </div>
+    </section>
 
-    <script src="scripts/api.js"></script>
-    <script src="scripts/navbar-loader.js"></script>
-    <script src="scripts/cliente.js"></script>
+    <!-- 3. SEÇÃO HISTÓRICO -->
+    <section id="secao-historico" class="content-section">
+      <div class="card-box">
+        <div class="card-header">
+          <h2>Consultas e Atendimentos Anteriores</h2>
+        </div>
+        <div class="table-responsive">
+          <table id="tabela-historico-cliente">
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th>Pet</th>
+                <th>Tipo</th>
+                <th>Veterinário</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td colspan="5" style="text-align: center; color: var(--muted-text);">Nenhum atendimento registrado.</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="scripts/api.js"></script>
+  <script src="scripts/cliente.js"></script>
 </body>
 </html>
