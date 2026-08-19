@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
                 <ul class="nav-links">
                     <li><a href="atendente.html" id="link-atendente">Atendente</a></li>
-                    <li><a href="cliente.html" id="link-cliente">Cliente</a></li>
+                    <li><a href="index.html" id="link-cliente">Cliente</a></li>
                     <li><a href="gestor.html" id="link-gestor">Gestor</a></li>
                     <li><a href="veterinario.html" id="link-veterinario">Veterinario</a></li>
                 </ul>
@@ -31,7 +31,7 @@ function marcarLinkAtivo() {
 
     if (page === "atendente.html" || page === "") {
         document.getElementById("link-atendente")?.classList.add("active");
-    } else if (page === "cliente.html") {
+    } else if (page === "index.html") {
         document.getElementById("link-cliente")?.classList.add("active");
     } else if (page === "gestor.html") {
         document.getElementById("link-gestor")?.classList.add("active");
