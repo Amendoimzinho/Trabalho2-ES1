@@ -14,7 +14,7 @@ import com.patasfelizes.api.service.ServiceGemini;
 
 
 @RestController
-@RequestMapping("/api/gemini")
+@RequestMapping("/gemini")
 public class ControllerGemini {
     
     @Autowired
