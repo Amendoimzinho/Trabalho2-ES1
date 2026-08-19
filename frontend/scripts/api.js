@@ -2,7 +2,16 @@
 // Módulo compartilhado de acesso à API REST.
 
 const API_CONFIG = {
-    baseUrl: "http://localhost:8080/api",
+    // Em desenvolvimento (localhost/127.0.0.1) aponta pro Spring Boot local.
+    // Quando o backend estiver hospedado (ex: Render), troque o valor de
+    // PROD_API_URL abaixo pela URL pública, algo como:
+    //   "https://seu-app.onrender.com/api"
+    baseUrl: (() => {
+        const host = window.location.hostname;
+        const isLocal = host === "localhost" || host === "127.0.0.1";
+        const PROD_API_URL = "https://TROCAR-PELA-URL-DO-RENDER.onrender.com/api";
+        return isLocal ? "http://localhost:8080/api" : PROD_API_URL;
+    })(),
 };
 
 async function apiRequest(path, { method = "GET", params = null, body = null } = {}) {

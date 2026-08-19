@@ -45,36 +45,35 @@ async function configurarAgendamento() {
     const selectPet = document.getElementById("select-pet-agendamento");
     const btnSalvar = form.querySelector(".btn-primary");
 
-    // Carrega os animais disponíveis
+    // LIMITAÇÃO DO BACKEND: não existe endpoint /animais, nem endpoint para
+    // criar um animal novo. A única forma de "descobrir" animais existentes
+    // é olhando os atendimentos já cadastrados (GET /atendimentos) e
+    // extraindo o par nroAnimal/nomeAnimal de lá. Ou seja: só aparecem aqui
+    // animais que já tiveram pelo menos um atendimento registrado no banco.
+    let animaisDisponiveis = [];
     try {
-        let animais = await api.get("/animais");
-        if (!animais || animais.length === 0) {
-            // Fallback: busca dos atendimentos
-            const atendimentos = await api.get("/atendimentos");
-            const animaisMap = new Map();
-            if (atendimentos) {
-                atendimentos.forEach(a => {
-                    if (a.nroAnimal && !animaisMap.has(a.nroAnimal)) {
-                        animaisMap.set(a.nroAnimal, {
-                            nroAnimal: a.nroAnimal,
-                            nome: a.nomeAnimal || 'Animal ' + a.nroAnimal
-                        });
-                    }
+        const atendimentos = await api.get("/atendimentos");
+        const animaisMap = new Map();
+        (atendimentos || []).forEach(a => {
+            if (a.nroAnimal && !animaisMap.has(a.nroAnimal)) {
+                animaisMap.set(a.nroAnimal, {
+                    nroAnimal: a.nroAnimal,
+                    nome: a.nomeAnimal || ("Animal " + a.nroAnimal)
                 });
-                animais = Array.from(animaisMap.values());
             }
-        }
+        });
+        animaisDisponiveis = Array.from(animaisMap.values());
 
         selectPet.innerHTML = "";
-        if (!animais || animais.length === 0) {
-            selectPet.innerHTML = '<option value="" disabled selected>Nenhum animal cadastrado ainda</option>';
+        if (animaisDisponiveis.length === 0) {
+            selectPet.innerHTML = '<option value="" disabled selected>Nenhum animal encontrado (fale com a recepção)</option>';
         } else {
             selectPet.innerHTML = '<option value="" disabled selected>Selecione o Animal...</option>';
-            animais.forEach(a => {
+            animaisDisponiveis.forEach(a => {
                 const opt = document.createElement("option");
-                opt.value = a.nome ?? a.nomeAnimal ?? "";
-                opt.dataset.nroAnimal = a.nroAnimal ?? "";
-                opt.textContent = `${a.nome ?? a.nomeAnimal ?? '?'}${a.tipoAnimal ? " (" + a.tipoAnimal + ")" : ""}`;
+                opt.value = a.nome;
+                opt.dataset.nroAnimal = a.nroAnimal;
+                opt.textContent = a.nome;
                 selectPet.appendChild(opt);
             });
         }
@@ -83,31 +82,48 @@ async function configurarAgendamento() {
         mostrarErroApi(err);
     }
 
+    // LIMITAÇÃO DO BACKEND: o formulário não tem campo para escolher o
+    // veterinário, mas o back-end exige um nroVeterinario para agendar.
+    // Buscamos a lista de veterinários e usamos o primeiro disponível.
+    // Quando o formulário ganhar um <select> de veterinário, troque essa
+    // lógica por um valor escolhido pelo usuário.
+    let nroVeterinarioPadrao = null;
+    try {
+        const veterinarios = await api.get("/veterinarios");
+        if (veterinarios && veterinarios.length > 0) {
+            nroVeterinarioPadrao = veterinarios[0].nroVeterinario;
+        }
+    } catch (err) {
+        // Se falhar, avisamos só na hora de salvar (abaixo).
+    }
+
     btnSalvar.addEventListener("click", async () => {
         if (!form.reportValidity()) return;
 
         const opcaoSelecionada = selectPet.options[selectPet.selectedIndex];
-        
-        // Mapeia motivo para nroTipoAtendimento
-        const motivoMap = {
-            "Consulta Geral": 1,
-            "Vacina": 2,
-            "Banho & Tosa": 1
-        };
+        const nroAnimal = opcaoSelecionada ? parseInt(opcaoSelecionada.dataset.nroAnimal) : NaN;
 
-        const dados = {
-            nroTipoAtendimento: motivoMap[form.motivo.value] || 1,
-            nroAnimal: parseInt(opcaoSelecionada.dataset.nroAnimal) || 0,
-            nroVeterinario: 1, // Placeholder
-            ini_dataAtendimento: `${form.data.value}T${form.hora.value}:00`,
-            end_dataAtendimento: `${form.data.value}T${form.hora.value}:00`,
-            observacoes: form.motivo.value || ""
-        };
-
-        if (!dados.nroAnimal) {
+        if (!nroAnimal || Number.isNaN(nroAnimal)) {
             alert("Selecione um animal válido!");
             return;
         }
+
+        if (!nroVeterinarioPadrao) {
+            alert("Não há nenhum veterinário cadastrado no sistema. Não é possível agendar agora.");
+            return;
+        }
+
+        // Observação: o back-end (AtendimentoConsulta / ServiceAtendimento)
+        // não usa um campo de "tipo" no POST — o tipo de atendimento é
+        // sempre fixado como o primeiro tipo cadastrado no banco. Por isso
+        // não enviamos nroTipoAtendimento aqui; guardamos o motivo só como
+        // observação em texto.
+        const dados = {
+            nroAnimal: nroAnimal,
+            nroVeterinario: nroVeterinarioPadrao,
+            ini_dataAtendimento: `${form.data.value}T${form.hora.value}:00`,
+            observacoes: form.motivo.value || ""
+        };
 
         try {
             await api.post("/atendimentos", dados);

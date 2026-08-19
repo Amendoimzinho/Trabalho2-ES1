@@ -40,6 +40,10 @@ document.addEventListener("DOMContentLoaded", () => {
 // ==========================================================================
 // Histórico de Animais (Prontuário)
 // ==========================================================================
+// LIMITAÇÃO DO BACKEND: não existe endpoint /animais. A única forma de
+// listar animais é extraindo nroAnimal/nomeAnimal dos atendimentos já
+// cadastrados (GET /atendimentos). Ou seja, um animal só aparece aqui
+// depois de já ter tido pelo menos um atendimento.
 function configurarProntuario() {
     const input = document.getElementById("filtro-prontuario-texto");
     const btnBuscar = document.getElementById("btn-buscar-prontuario");
@@ -48,31 +52,26 @@ function configurarProntuario() {
     async function buscar() {
         lista.innerHTML = '<li class="data-item">Buscando...</li>';
         try {
-            const nome = input.value.trim();
-            let animais = [];
-            
-            // Tenta buscar animais
-            try {
-                animais = await api.get("/animais", { nome: nome || undefined });
-            } catch (e) {
-                // Fallback: busca dos atendimentos
-                const atendimentos = await api.get("/atendimentos");
-                const animaisMap = new Map();
-                if (atendimentos) {
-                    atendimentos.forEach(a => {
-                        if (a.nroAnimal && !animaisMap.has(a.nroAnimal)) {
-                            animaisMap.set(a.nroAnimal, {
-                                nroAnimal: a.nroAnimal,
-                                nome: a.nomeAnimal || 'Animal ' + a.nroAnimal
-                            });
-                        }
+            const nomeFiltro = input.value.trim().toLowerCase();
+
+            const atendimentos = await api.get("/atendimentos");
+            const animaisMap = new Map();
+            (atendimentos || []).forEach(a => {
+                if (a.nroAnimal && !animaisMap.has(a.nroAnimal)) {
+                    animaisMap.set(a.nroAnimal, {
+                        nroAnimal: a.nroAnimal,
+                        nome: a.nomeAnimal || ("Animal " + a.nroAnimal)
                     });
-                    animais = Array.from(animaisMap.values());
                 }
+            });
+
+            let animais = Array.from(animaisMap.values());
+            if (nomeFiltro) {
+                animais = animais.filter(a => a.nome.toLowerCase().includes(nomeFiltro));
             }
 
             lista.innerHTML = "";
-            if (!animais || animais.length === 0) {
+            if (animais.length === 0) {
                 lista.innerHTML = '<li class="data-item">Nenhum animal encontrado.</li>';
                 return;
             }
@@ -80,27 +79,26 @@ function configurarProntuario() {
             for (const a of animais) {
                 const li = document.createElement("li");
                 li.className = "data-item";
-                const nomeAnimal = a.nome ?? a.nomeAnimal ?? 'Animal ' + (a.nroAnimal || '?');
                 li.innerHTML = `
                     <div class="item-info">
-                        <strong>${nomeAnimal}</strong>
-                        <span>ID: ${a.nroAnimal || 'N/A'} | Tipo: ${a.tipoAnimal || a.especie || 'N/A'}</span>
+                        <strong>${a.nome}</strong>
+                        <span>ID: ${a.nroAnimal}</span>
                     </div>
                     <div class="item-actions">
                         <button class="btn-secondary btn-sm">Ver Histórico</button>
                     </div>
                 `;
-                
+
                 li.querySelector("button").addEventListener("click", async () => {
                     try {
                         const historico = await api.get("/atendimentos", { nroAnimal: a.nroAnimal });
                         if (historico && historico.length > 0) {
-                            const historicoStr = historico.map(h => 
+                            const historicoStr = historico.map(h =>
                                 `- ${h.ini_dataAtendimento || 'N/A'}: ${h.observacoes || 'Atendimento'}`
                             ).join('\n');
-                            alert(`📋 Histórico de ${nomeAnimal}:\n\n${historicoStr || 'Nenhum atendimento registrado.'}`);
+                            alert(`📋 Histórico de ${a.nome}:\n\n${historicoStr}`);
                         } else {
-                            alert(`📋 ${nomeAnimal} não possui atendimentos registrados.`);
+                            alert(`📋 ${a.nome} não possui atendimentos registrados.`);
                         }
                     } catch (err) {
                         mostrarErroApi(err);
@@ -130,8 +128,7 @@ async function configurarAgenda() {
         try {
             const todos = await api.get("/atendimentos");
             const dataFiltro = inputData.value;
-            
-            // Filtra os atendimentos pela data
+
             let filtrados = todos || [];
             if (dataFiltro) {
                 filtrados = filtrados.filter(a => {
@@ -149,8 +146,7 @@ async function configurarAgenda() {
             filtrados.forEach(a => {
                 const li = document.createElement("li");
                 li.className = "data-item highlighted";
-                
-                // Extrai hora da data
+
                 let hora = "N/A";
                 if (a.ini_dataAtendimento) {
                     try {
@@ -158,10 +154,12 @@ async function configurarAgenda() {
                     } catch (e) { /* ignora */ }
                 }
 
+                // O back-end já devolve "tipoAtendimento" como texto legível
+                // (ex: "Consulta"), então usamos direto em vez de mapear IDs.
                 li.innerHTML = `
                     <div class="item-info">
                         <strong>${hora} - ${a.nomeAnimal || 'Animal ' + (a.nroAnimal || '?')}</strong>
-                        <span>Tipo: ${a.nroTipoAtendimento === 1 ? 'Consulta' : a.nroTipoAtendimento === 2 ? 'Vacinação' : 'N/A'}</span>
+                        <span>Tipo: ${a.tipoAtendimento || 'N/A'}</span>
                         ${a.observacoes ? `<span>Obs: ${a.observacoes}</span>` : ''}
                     </div>
                     <div class="item-actions">
@@ -177,7 +175,6 @@ async function configurarAgenda() {
     }
 
     inputData.addEventListener("change", carregar);
-    // Data atual como padrão
     const hoje = new Date().toISOString().split('T')[0];
     inputData.value = hoje;
     carregar();

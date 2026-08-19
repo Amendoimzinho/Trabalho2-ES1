@@ -106,18 +106,27 @@ function configurarCadastroCliente() {
     btnSalvar.addEventListener("click", async () => {
         if (!form.reportValidity()) return;
 
+        // O VO Cliente do back-end não tem campo de telefone, só "emails"
+        // (lista). O formulário tem um campo de telefone que, por enquanto,
+        // não é persistido em lugar nenhum — mantemos o input na tela
+        // (o atendente pode anotar à parte) mas não enviamos pro back-end.
+        const emailDigitado = form.email.value.trim();
+
         const dados = {
             nomeCliente: form.nomeCliente.value.trim(),
             CPF: form.cpf.value.trim(),
-            telefones: form.telefone.value.trim() ? [form.telefone.value.trim()] : [],
-            logradouro: form.endereco.value.trim() || ""
+            emails: emailDigitado ? [emailDigitado] : [],
+            CEP: form.cep.value.trim() || null,
+            logradouro: form.endereco?.value?.trim() || form.logradouro?.value?.trim() || "",
+            bairro: form.bairro.value.trim() || null,
+            cidade: form.cidade.value.trim() || null,
+            estado: form.estado.value.trim() || null
         };
 
         try {
             const criado = await api.post("/clientes", dados);
-            alert(`✅ Cliente criado com sucesso! ID: ${criado.nroCliente || 'N/A'}`);
+            alert(`✅ Cliente criado com sucesso! ID: ${criado.nroCliente ?? 'N/A'}`);
             form.reset();
-            // 🔥 CORRIGIDO: verifica se a função existe antes de chamar
             if (typeof window.carregarClientes === 'function') {
                 window.carregarClientes();
             }
@@ -128,20 +137,18 @@ function configurarCadastroCliente() {
 }
 
 function configurarConsultaClientes() {
-    const body = corpoPainel();
     const inputBusca = document.getElementById("filtro-cliente-texto");
     const lista = document.getElementById("lista-clientes");
 
-    // 🔥 DEFINE A FUNÇÃO PRIMEIRO
     window.carregarClientes = async function() {
         lista.innerHTML = '<li class="data-item">Carregando...</li>';
         try {
-            const clientes = await api.get("/clientes", { 
-                nomeCliente: inputBusca.value.trim() || undefined 
+            const clientes = await api.get("/clientes", {
+                nomeCliente: inputBusca.value.trim() || undefined
             });
             renderizarLista(lista, clientes, c => ({
                 titulo: c.nomeCliente ?? "(sem nome)",
-                subtitulo: `CPF: ${c.CPF || 'N/A'} | Telefones: ${(c.telefones || []).join(', ') || 'N/A'}`
+                subtitulo: `CPF: ${c.CPF || 'N/A'} | Email: ${(c.emails || []).join(', ') || 'N/A'}`
             }));
         } catch (err) {
             lista.innerHTML = '<li class="data-item">Erro ao carregar clientes.</li>';
@@ -155,58 +162,25 @@ function configurarConsultaClientes() {
         timer = setTimeout(window.carregarClientes, 400);
     });
 
-    // 🔥 AGORA CHAMA A FUNÇÃO QUE JÁ FOI DEFINIDA
     window.carregarClientes();
 }
 
 // ==========================================================================
-// ANIMAIS (antigo Pets)
+// ANIMAIS
 // ==========================================================================
+// LIMITAÇÃO DO BACKEND: não existe nenhum endpoint /animais (nem GET nem
+// POST). Não há como cadastrar um animal novo diretamente ainda, e a
+// listagem só consegue mostrar animais que já apareceram em algum
+// atendimento cadastrado (via GET /atendimentos).
 
 function configurarCadastroAnimal() {
     const form = corpoPainel().querySelector("form");
     const btnSalvar = form.querySelector(".btn-primary");
 
-    btnSalvar.addEventListener("click", async () => {
+    btnSalvar.addEventListener("click", () => {
         if (!form.reportValidity()) return;
 
-        const dados = {
-            nome: form.nomeAnimal.value.trim(),
-            nomeDono: form.nomeTutor.value.trim(),
-            tipoAnimal: form.especie.value || "",
-            especie: form.raca.value.trim() || "",
-            genero: "",
-            peso: 0,
-            observacoes: ""
-        };
-
-        try {
-            const tutores = await api.get("/clientes", { nomeCliente: dados.nomeDono });
-            if (tutores && tutores.length > 0) {
-                // OK
-            } else {
-                alert(`⚠️ Não encontrei nenhum cliente chamado "${dados.nomeDono}". Cadastre o cliente primeiro.`);
-                return;
-            }
-        } catch (err) {
-            mostrarErroApi(err);
-            return;
-        }
-
-        try {
-            await api.post("/animais", dados);
-            alert(`✅ Animal cadastrado com sucesso!`);
-            form.reset();
-            if (typeof window.carregarAnimais === 'function') {
-                window.carregarAnimais();
-            }
-        } catch (err) {
-            if (err.message.includes("404")) {
-                alert(`⚠️ O endpoint /animais ainda não existe no back-end.\n\nPara cadastrar um animal, crie um atendimento associado a ele.`);
-            } else {
-                mostrarErroApi(err);
-            }
-        }
+        alert("⚠️ O back-end ainda não tem um endpoint para cadastrar animais diretamente. Por enquanto, um animal só passa a existir no sistema quando um atendimento é registrado para ele.");
     });
 }
 
@@ -217,39 +191,30 @@ function configurarConsultaAnimais() {
     window.carregarAnimais = async function() {
         lista.innerHTML = '<li class="data-item">Carregando...</li>';
         try {
-            let animais = await api.get("/animais", { 
-                nome: inputBusca.value.trim() || undefined 
-            });
-            
-            if (!animais || animais.length === 0) {
-                const atendimentos = await api.get("/atendimentos");
-                const animaisMap = new Map();
-                if (atendimentos) {
-                    atendimentos.forEach(a => {
-                        if (a.nroAnimal && !animaisMap.has(a.nroAnimal)) {
-                            animaisMap.set(a.nroAnimal, {
-                                nroAnimal: a.nroAnimal,
-                                nome: a.nomeAnimal || 'Animal ' + a.nroAnimal,
-                                tipoAnimal: 'N/A',
-                                especie: 'N/A'
-                            });
-                        }
+            const atendimentos = await api.get("/atendimentos");
+            const animaisMap = new Map();
+            (atendimentos || []).forEach(a => {
+                if (a.nroAnimal && !animaisMap.has(a.nroAnimal)) {
+                    animaisMap.set(a.nroAnimal, {
+                        nroAnimal: a.nroAnimal,
+                        nome: a.nomeAnimal || ("Animal " + a.nroAnimal)
                     });
-                    animais = Array.from(animaisMap.values());
                 }
+            });
+
+            let animais = Array.from(animaisMap.values());
+            const filtro = inputBusca.value.trim().toLowerCase();
+            if (filtro) {
+                animais = animais.filter(a => a.nome.toLowerCase().includes(filtro));
             }
-            
+
             renderizarLista(lista, animais, a => ({
-                titulo: a.nome ?? a.nomeAnimal ?? "(sem nome)",
-                subtitulo: `Tipo: ${a.tipoAnimal || a.especie || 'N/A'}`
+                titulo: a.nome,
+                subtitulo: `ID: ${a.nroAnimal}`
             }));
         } catch (err) {
-            if (err.message.includes("404")) {
-                lista.innerHTML = '<li class="data-item">⚠️ Endpoint /animais não disponível. Cadastre animais via atendimentos.</li>';
-            } else {
-                lista.innerHTML = '<li class="data-item">Erro ao carregar animais.</li>';
-                mostrarErroApi(err);
-            }
+            lista.innerHTML = '<li class="data-item">Erro ao carregar animais.</li>';
+            mostrarErroApi(err);
         }
     };
 
@@ -273,23 +238,17 @@ function configurarAgendarAtendimento() {
     btnSalvar.addEventListener("click", async () => {
         if (!form.reportValidity()) return;
 
+        // LIMITAÇÃO DO BACKEND: sem /animais, só conseguimos achar o
+        // nroAnimal de um animal que já teve atendimento antes.
         let nroAnimal = null;
         try {
-            const animais = await api.get("/animais", { 
-                nome: form.nomeAnimal.value.trim() 
-            });
-            if (animais && animais.length > 0) {
-                nroAnimal = animais[0].nroAnimal;
-            } else {
-                const atendimentos = await api.get("/atendimentos");
-                if (atendimentos) {
-                    const encontrado = atendimentos.find(a => a.nomeAnimal === form.nomeAnimal.value.trim());
-                    if (encontrado) nroAnimal = encontrado.nroAnimal;
-                }
-            }
-            
+            const atendimentos = await api.get("/atendimentos");
+            const nomeDigitado = form.nomeAnimal.value.trim();
+            const encontrado = (atendimentos || []).find(a => a.nomeAnimal === nomeDigitado);
+            if (encontrado) nroAnimal = encontrado.nroAnimal;
+
             if (!nroAnimal) {
-                alert(`⚠️ Não encontrei nenhum animal chamado "${form.nomeAnimal.value.trim()}". Cadastre o animal primeiro.`);
+                alert(`⚠️ Não encontrei nenhum animal chamado "${nomeDigitado}" com atendimentos anteriores. Ainda não é possível cadastrar um animal novo pelo sistema.`);
                 return;
             }
         } catch (err) {
@@ -297,13 +256,32 @@ function configurarAgendarAtendimento() {
             return;
         }
 
+        // LIMITAÇÃO DO BACKEND: o formulário não tem campo de veterinário.
+        // Usamos o primeiro veterinário cadastrado como padrão até o
+        // formulário ganhar um seletor de verdade.
+        let nroVeterinario = null;
+        try {
+            const veterinarios = await api.get("/veterinarios");
+            if (veterinarios && veterinarios.length > 0) {
+                nroVeterinario = veterinarios[0].nroVeterinario;
+            }
+        } catch (err) {
+            mostrarErroApi(err);
+            return;
+        }
+
+        if (!nroVeterinario) {
+            alert("⚠️ Não há nenhum veterinário cadastrado no sistema.");
+            return;
+        }
+
+        // Observação: o back-end sempre grava o atendimento com o mesmo
+        // tipo (o primeiro cadastrado no banco) — não existe campo de tipo
+        // no POST. O "motivo" escolhido no formulário vira só a observação.
         const dados = {
-            nroTipoAtendimento: form.motivo.value === "Consulta de Rotina" ? 1 : 
-                               form.motivo.value === "Vacinação" ? 2 : 1,
             nroAnimal: nroAnimal,
-            nroVeterinario: 1,
+            nroVeterinario: nroVeterinario,
             ini_dataAtendimento: `${form.data.value}T${form.hora.value}:00`,
-            end_dataAtendimento: `${form.data.value}T${form.hora.value}:00`,
             observacoes: form.motivo.value || ""
         };
 
@@ -327,12 +305,12 @@ function configurarConsultaAtendimentos() {
     window.carregarAtendimentos = async function() {
         lista.innerHTML = '<li class="data-item">Carregando...</li>';
         try {
-            const atendimentos = await api.get("/atendimentos", { 
-                nomeCliente: inputBusca.value.trim() || undefined 
+            const atendimentos = await api.get("/atendimentos", {
+                nomeCliente: inputBusca.value.trim() || undefined
             });
             renderizarLista(lista, atendimentos, a => ({
-                titulo: `Atendimento #${a.nroAnimal || '?'}`,
-                subtitulo: `Animal: ${a.nomeAnimal || 'N/A'} | Veterinário: ${a.nomeVeterinario || 'N/A'} | Data: ${a.ini_dataAtendimento || 'N/A'}`
+                titulo: a.nomeAnimal || `Animal ${a.nroAnimal || '?'}`,
+                subtitulo: `Veterinário: ${a.nomeVeterinario || 'N/A'} | Tipo: ${a.tipoAtendimento || 'N/A'} | Data: ${a.ini_dataAtendimento || 'N/A'}`
             }));
         } catch (err) {
             lista.innerHTML = '<li class="data-item">Erro ao carregar atendimentos.</li>';
@@ -352,6 +330,11 @@ function configurarConsultaAtendimentos() {
 // ==========================================================================
 // VETERINÁRIOS
 // ==========================================================================
+// LIMITAÇÃO DO BACKEND: o ControllerVeterinario só tem listagem por nome/id.
+// Não existe endpoint de horários disponíveis exposto via HTTP (a lógica
+// existe em ServiceVeterinario.calcularHorariosDisponiveis, mas ninguém
+// chama ela publicamente ainda), nem CRMV/telefone no VO. Por isso a lista
+// abaixo mostra só nome e id.
 
 function configurarConsultaVeterinarios() {
     const inputBusca = document.getElementById("filtro-veterinario-texto");
@@ -360,49 +343,13 @@ function configurarConsultaVeterinarios() {
     window.carregarVeterinarios = async function() {
         lista.innerHTML = '<li class="data-item">Carregando...</li>';
         try {
-            const veterinarios = await api.get("/veterinarios", { 
-                nomeVeterinario: inputBusca.value.trim() || undefined 
+            const veterinarios = await api.get("/veterinarios", {
+                nomeVeterinario: inputBusca.value.trim() || undefined
             });
-            lista.innerHTML = "";
-
-            if (!veterinarios || veterinarios.length === 0) {
-                lista.innerHTML = '<li class="data-item">Nenhum veterinário encontrado.</li>';
-                return;
-            }
-
-            for (const v of veterinarios) {
-                const li = document.createElement("li");
-                li.className = "data-item";
-                li.innerHTML = `
-                    <div class="item-info">
-                        <strong>${v.nome ?? "(sem nome)"}</strong>
-                        <span>CRMV: ${v.CRMV || 'N/A'} | Telefone: ${v.telefone || 'N/A'}</span>
-                        <span class="horarios-veterinario">Carregando horários...</span>
-                    </div>
-                `;
-                lista.appendChild(li);
-
-                const nroVeterinario = v.nroVeterinario;
-                if (nroVeterinario !== undefined) {
-                    api.get(`/veterinarios/${nroVeterinario}/horarios-disponiveis`)
-                        .then(horarios => {
-                            const span = li.querySelector(".horarios-veterinario");
-                            if (horarios && horarios.length) {
-                                const horariosStr = horarios.map(h => {
-                                    if (typeof h === 'string') return h;
-                                    if (h instanceof Date) return h.toLocaleString();
-                                    return JSON.stringify(h);
-                                }).join(' | ');
-                                span.textContent = `Horários: ${horariosStr}`;
-                            } else {
-                                span.textContent = "Sem horários disponíveis no momento.";
-                            }
-                        })
-                        .catch(() => {
-                            li.querySelector(".horarios-veterinario").textContent = "Não foi possível carregar os horários.";
-                        });
-                }
-            }
+            renderizarLista(lista, veterinarios, v => ({
+                titulo: v.nomeVeterinario ?? "(sem nome)",
+                subtitulo: `ID: ${v.nroVeterinario ?? 'N/A'}`
+            }));
         } catch (err) {
             lista.innerHTML = '<li class="data-item">Erro ao carregar veterinários.</li>';
             mostrarErroApi(err);

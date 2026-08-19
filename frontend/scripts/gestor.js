@@ -38,41 +38,25 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // ==========================================================================
-    // LIGAÇÃO COM A API - Cadastro de Funcionário (Veterinário)
+    // Cadastro de Funcionário (Veterinário)
     // ==========================================================================
+    // LIMITAÇÃO DO BACKEND: não existe (ainda) um POST /veterinarios no
+    // back-end — o ControllerVeterinario só tem listagem (GET). Até esse
+    // endpoint ser criado, deixamos o botão de salvar avisando o usuário
+    // em vez de tentar chamar uma rota que vai dar 404.
     function configurarCadastroFuncionario() {
         const form = panelDynamicBody.querySelector("form");
         const btnSalvar = form.querySelector(".btn-primary");
 
-        btnSalvar.addEventListener("click", async () => {
+        btnSalvar.addEventListener("click", () => {
             if (!form.reportValidity()) return;
 
-            const cargo = form.cargo.value;
-
-            // Hoje o back-end só tem endpoint de cadastro para Veterinário
-            if (cargo !== "Veterinário(a)") {
-                alert(`⚠️ Cadastro de "${cargo}" ainda não está disponível no back-end.\nApenas Veterinário(a) pode ser cadastrado.`);
-                return;
-            }
-
-            const dados = {
-                nome: form.nomeVeterinario.value.trim(),
-                CRMV: form.crmv.value.trim() || "",
-                telefone: form.email.value.trim() || ""  // Usa email como telefone se não houver campo específico
-            };
-
-            try {
-                const criado = await api.post("/veterinarios", dados);
-                alert(`✅ Veterinário cadastrado com sucesso! ID: ${criado.nroVeterinario || 'N/A'}`);
-                form.reset();
-            } catch (err) {
-                mostrarErroApi(err);
-            }
+            alert("⚠️ O cadastro de funcionários ainda não está disponível: o back-end não tem uma rota para criar veterinários (só para listar). Peça pra alguém cadastrar direto no banco por enquanto.");
         });
     }
 
     // ==========================================================================
-    // SIMULADOR DO GERADOR DE RELATÓRIOS
+    // GERADOR DE RELATÓRIOS
     // ==========================================================================
     function setupReportLogic() {
         const btnGerar = document.getElementById("btn-gerar-relatorio");
@@ -81,7 +65,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
         if (!btnGerar || !selectType || !resultsList) return;
 
-        // Dados mockados (porque não há endpoint de relatórios)
+        // Dados mockados (porque não há endpoint dedicado de relatórios —
+        // isso é só um fallback visual caso não existam atendimentos ainda)
         const mockData = {
             pets: [
                 { titulo: "Cachorro - SRD (Vira-lata)", metrica: "145 atendimentos" },
@@ -102,21 +87,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
         btnGerar.addEventListener("click", async () => {
             const selectedReport = selectType.value;
-            
-            // Tenta buscar dados reais se possível
+
+            // Tenta montar um relatório real com base nos atendimentos
             try {
                 const atendimentos = await api.get("/atendimentos");
                 if (atendimentos && atendimentos.length > 0) {
-                    // Gera relatório real baseado nos atendimentos
-                    const tipos = {};
+                    // O back-end já devolve "tipoAtendimento" como texto
+                    // legível (ex: "Consulta"), então agrupamos direto por
+                    // esse valor em vez de tentar adivinhar um id numérico.
+                    const contagemPorTipo = {};
                     atendimentos.forEach(a => {
-                        const tipo = a.nroTipoAtendimento || 'desconhecido';
-                        tipos[tipo] = (tipos[tipo] || 0) + 1;
+                        const nomeTipo = a.tipoAtendimento || "Não informado";
+                        contagemPorTipo[nomeTipo] = (contagemPorTipo[nomeTipo] || 0) + 1;
                     });
-                    
+
                     resultsList.innerHTML = "";
-                    Object.entries(tipos).forEach(([tipo, count]) => {
-                        const nomeTipo = tipo === 1 ? 'Consultas' : tipo === 2 ? 'Vacinações' : 'Outros';
+                    Object.entries(contagemPorTipo).forEach(([nomeTipo, count]) => {
                         resultsList.innerHTML += `
                             <li class="data-item">
                                 <div class="item-info">
@@ -133,7 +119,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     return;
                 }
             } catch (e) {
-                // Fallback para mock
+                // Se falhar, cai no mock abaixo
             }
 
             // Usa dados mockados
@@ -147,7 +133,7 @@ document.addEventListener("DOMContentLoaded", () => {
                         </div>
                         <div class="item-actions">
                             <span style="background-color: var(--color-teal-light); color: var(--color-teal-dark); font-weight: 700; padding: 6px 12px; border-radius: var(--radius-lg);">
-                                ${item.métrica}
+                                ${item.metrica}
                             </span>
                         </div>
                     </li>
