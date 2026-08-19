@@ -111,25 +111,29 @@ document.addEventListener('DOMContentLoaded', () => {
     formCliente.addEventListener('submit', async (e) => {
       e.preventDefault();
 
-      const telLimpo = document.getElementById('cli-telefone').value.replace(/\D/g, '');
       const cpfLimpo = document.getElementById('cli-cpf').value.replace(/\D/g, '');
       const cepLimpo = document.getElementById('cli-cep').value.replace(/\D/g, '');
+      const emailDigitado = document.getElementById('cli-email').value.trim();
 
-      // Payload plano compatível com o Controller/Model do Spring Boot
+      // IMPORTANTE: o back-end (classe Cliente.java) espera exatamente estes
+      // nomes de campo, com essa mesma capitalização — o Jackson (conversor
+      // de JSON do Spring) diferencia maiúsculas de minúsculas. "nome" não
+      // vira "nomeCliente" sozinho, "cpf" não vira "CPF" sozinho, e "email"
+      // (texto único) não vira "emails" (lista) sozinho — por isso esses
+      // valores chegavam como null no banco.
+      //
+      // Campos que NÃO são enviados porque o back-end não tem onde guardar
+      // ainda: telefone, ddd, numero, complemento, ibge. Ver observação no
+      // final da conversa sobre isso.
       const novoCliente = {
-        nome: document.getElementById('cli-nome').value.trim(),
-        cpf: cpfLimpo,
-        email: document.getElementById('cli-email').value.trim(),
-        ddd: telLimpo.slice(0, 2),
-        telefone: telLimpo.slice(2),
-        cep: cepLimpo,
+        nomeCliente: document.getElementById('cli-nome').value.trim(),
+        CPF: cpfLimpo,
+        emails: emailDigitado ? [emailDigitado] : [],
+        CEP: cepLimpo,
         logradouro: document.getElementById('cli-logradouro')?.value || '',
-        numero: document.getElementById('cli-numero')?.value.trim() || '',
-        complemento: document.getElementById('cli-complemento')?.value.trim() || '',
         bairro: document.getElementById('cli-bairro')?.value || '',
         cidade: document.getElementById('cli-cidade')?.value || '',
-        estado: document.getElementById('cli-uf')?.value || '',
-        ibge: document.getElementById('cli-ibge')?.value || ''
+        estado: document.getElementById('cli-uf')?.value || ''
       };
 
       try {
@@ -160,22 +164,23 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       tbody.innerHTML = clientes.map((c) => {
-        // Formata visualmente o CPF (000.000.000-00)
-        const cpfRaw = c.cpf || c.CPF || '';
-        const cpfFormatado = cpfRaw.length === 11 
-          ? cpfRaw.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4') 
+        // Campos reais devolvidos pelo Cliente.java: nroCliente, nomeCliente,
+        // CPF, emails (lista), logradouro, bairro, cidade, estado, CEP.
+        // Não existe campo de telefone no back-end ainda.
+        const cpfRaw = c.CPF || '';
+        const cpfFormatado = cpfRaw.length === 11
+          ? cpfRaw.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
           : (cpfRaw || '-');
 
-        const cidadeUf = c.endereco 
-          ? `${c.endereco.cidade || ''} / ${c.endereco.estado || ''}` 
-          : (c.cidade ? `${c.cidade} / ${c.estado || ''}` : '-');
+        const cidadeUf = c.cidade ? `${c.cidade} / ${c.estado || ''}` : '-';
+        const emailExibido = (c.emails && c.emails.length > 0) ? c.emails[0] : '-';
 
         return `
           <tr>
-            <td>#${c.id || c.idCliente || '-'}</td>
-            <td><strong>${c.nome || c.nomeCliente || '-'}</strong></td>
+            <td>#${c.nroCliente ?? '-'}</td>
+            <td><strong>${c.nomeCliente || '-'}</strong></td>
             <td>${cpfFormatado}</td>
-            <td>${c.telefone || '-'}</td>
+            <td>${emailExibido}</td>
             <td>${cidadeUf}</td>
           </tr>
         `;
