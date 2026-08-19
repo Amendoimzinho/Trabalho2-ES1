@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patas Felizes - Área do Veterinário</title>
+    <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+    <header id="global-header" class="header-container"></header>
+
+    <main class="main-container">
+        <section class="options-container">
+            <button class="btn-category direct-action" data-title="Atendimento em Andamento" data-template="tmpl-atendimento-atual">
+                Atendimento Atual
+            </button>
+            <button class="btn-category direct-action" data-title="Consultar Prontuários" data-template="tmpl-prontuario">
+                Histórico de Pets
+            </button>
+            <button class="btn-category direct-action" data-title="Minha Agenda" data-template="tmpl-agenda">
+                Ver Agenda
+            </button>
+            <button class="btn-category direct-action" data-title="Disponibilidade de Horários" data-template="tmpl-horarios">
+                Gerenciar Horários
+            </button>
+        </section>
+
+        <section id="dynamic-panel" class="panel-container">
+            <div class="panel-header">
+                <h2 id="panel-title">Título</h2>
+                <button id="close-panel" class="btn-close">&times;</button>
+            </div>
+
+            <div id="panel-dynamic-body" class="panel-body"></div>
+        </section>
+    </main>
+
+    <template id="tmpl-atendimento-atual">
+        <div class="status-box">
+            <strong>Em consulta agora (15:30):</strong> Rex (Tutor: João Silva)
+        </div>
+
+        <form class="modal-form">
+            <label>Diagnóstico / Motivo Atualizado:</label>
+            <input type="text" placeholder="Ex: Suspeita de dermatite alérgica..." required>
+
+            <label>Prescrição de Exames:</label>
+            <textarea rows="2" placeholder="Descreva os exames necessários (Sangue, Raio-X...)"></textarea>
+
+            <label>Prescrição de Medicamentos:</label>
+            <textarea rows="3" placeholder="Ex: Antibiótico de 8h em 8h, 10 gotas..."></textarea>
+
+            <label>Encaminhamento de Vacinas:</label>
+            <select>
+                <option value="nenhuma" selected>Nenhuma nova vacina</option>
+                <option value="v10">Aplicar V10</option>
+                <option value="antirrabica">Aplicar Antirrábica</option>
+            </select>
+
+            <div class="modal-footer">
+                <button type="button" class="btn-primary close-panel-action">Salvar e Encerrar Atendimento</button>
+            </div>
+        </form>
+    </template>
+
+    <template id="tmpl-prontuario">
+        <div class="list-container">
+            <div class="filter-bar">
+                <input type="text" id="filtro-prontuario-texto" placeholder="Buscar pet por nome...">
+                <button type="button" class="btn-primary" id="btn-buscar-prontuario">Buscar</button>
+            </div>
+            <ul class="data-list" id="lista-prontuario">
+                <li class="data-item">Digite um nome e clique em Buscar.</li>
+            </ul>
+        </div>
+    </template>
+
+    <template id="tmpl-agenda">
+        <div class="list-container">
+            <div class="filter-bar">
+                <input type="date" id="filtro-agenda-data" title="Data da Agenda">
+            </div>
+            <ul class="data-list" id="lista-agenda">
+                <li class="data-item">Carregando...</li>
+            </ul>
+        </div>
+    </template>
+
+    <template id="tmpl-horarios">
+        <form class="modal-form">
+            <label>Adicionar novo bloco de disponibilidade:</label>
+            <div class="filter-bar">
+                <select class="flex-2" required>
+                    <option value="" disabled selected>Dia da Semana</option>
+                    <option>Segunda-feira</option>
+                    <option>Terça-feira</option>
+                    <option>Quarta-feira</option>
+                    <option>Quinta-feira</option>
+                    <option>Sexta-feira</option>
+                </select>
+                <input type="time" title="Hora de Início" required>
+                <input type="time" title="Hora de Fim" required>
+                <button type="button" class="btn-primary">Adicionar</button>
+            </div>
+        </form>
+
+        <h4 class="section-title">Meus Horários Atuais:</h4>
+        <ul class="data-list">
+            <li class="data-item">
+                <div class="item-info">
+                    <strong>Segundas, Quartas e Sextas</strong>
+                    <span>Das 08:00 às 12:00</span>
+                </div>
+                <div class="item-actions">
+                    <button class="action-btn delete-btn" title="Remover Horário">🗑️</button>
+                </div>
+            </li>
+            <li class="data-item">
+                <div class="item-info">
+                    <strong>Terças e Quintas</strong>
+                    <span>Das 14:00 às 18:00</span>
+                </div>
+                <div class="item-actions">
+                    <button class="action-btn delete-btn" title="Remover Horário">🗑️</button>
+                </div>
+            </li>
+        </ul>
+    </template>
+
+    <script src="scripts/api.js"></script>
+    <script src="scripts/navbar-loader.js"></script>
+    <script src="scripts/veterinario.js"></script>
+</body>
+</html>

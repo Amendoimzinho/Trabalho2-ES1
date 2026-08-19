@@ -1,0 +1,41 @@
+package com.patasfelizes.api.entity;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name = "Especie")
+public class EntityEspecie {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "nroEspecie")
+    private Integer nroEspecie;
+
+    @Column(name = "nomeEspecie")
+    private String nomeEspecie;
+
+    public Integer getNroEspecie() {
+        return nroEspecie;
+    }
+
+    public void setNroEspecie(Integer nroEspecie) {
+        this.nroEspecie = nroEspecie;
+    }
+
+    public String getNomeEspecie() {
+        return nomeEspecie;
+    }
+
+    public void setNomeEspecie(String nomeEspecie) {
+        this.nomeEspecie = nomeEspecie;
+    }
+
+    public EntityEspecie() {
+    }
+
+
+}

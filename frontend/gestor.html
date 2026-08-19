@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patas Felizes - Área do Gestor</title>
+    <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+    <header id="global-header" class="header-container"></header>
+
+    <main class="main-container">
+        <section class="options-container">
+            <button class="btn-category direct-action" data-title="Novo Funcionário" data-template="tmpl-cadastrar-funcionario">
+                Cadastrar Funcionário
+            </button>
+            <button class="btn-category direct-action" data-title="Nova Vacina" data-template="tmpl-cadastrar-vacina">
+                Cadastrar Vacina
+            </button>
+            <button class="btn-category direct-action" data-title="Painel de Relatórios" data-template="tmpl-relatorios">
+                Acessar Relatórios
+            </button>
+        </section>
+
+        <section id="dynamic-panel" class="panel-container">
+            <div class="panel-header">
+                <h2 id="panel-title">Título</h2>
+                <button id="close-panel" class="btn-close">&times;</button>
+            </div>
+
+            <div id="panel-dynamic-body" class="panel-body"></div>
+        </section>
+    </main>
+
+    <template id="tmpl-cadastrar-funcionario">
+        <form class="modal-form">
+            <input type="text" name="nomeVeterinario" placeholder="Nome Completo do Funcionário" required>
+            <select name="cargo" required>
+                <option value="" disabled selected>Cargo...</option>
+                <option>Veterinário(a)</option>
+                <option>Atendente / Recepção</option>
+                <option>Banho & Tosa</option>
+            </select>
+            <input type="text" name="crmv" placeholder="CRMV (Apenas para Veterinários)">
+            <input type="email" name="email" placeholder="E-mail de Acesso" required>
+            <input type="password" name="senha" placeholder="Senha Temporária" required>
+
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary close-panel-action">Cancelar</button>
+                <button type="button" class="btn-primary close-panel-action">Salvar Funcionário</button>
+            </div>
+        </form>
+    </template>
+
+    <template id="tmpl-cadastrar-vacina">
+        <form class="modal-form">
+            <input type="text" placeholder="Nome da Vacina (Ex: V10, Antirrábica)" required>
+            <select required>
+                <option value="" disabled selected>Espécie Alvo...</option>
+                <option>Canina</option>
+                <option>Felina</option>
+                <option>Ambos</option>
+            </select>
+            <input type="text" placeholder="Intervalo de Doses (Ex: Anual, 21 dias)" required>
+
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary close-panel-action">Cancelar</button>
+                <button type="button" class="btn-primary close-panel-action">Salvar Vacina</button>
+            </div>
+        </form>
+    </template>
+
+    <template id="tmpl-relatorios">
+        <div class="list-container">
+            <div class="filter-bar" style="flex-wrap: wrap;">
+                <input type="date" title="Data de Início" required>
+                <input type="date" title="Data de Fim" required>
+                <select id="report-type">
+                    <option value="pets">Pets/Raças mais frequentes</option>
+                    <option value="motivos">Motivos de consulta frequentes</option>
+                    <option value="vacinas">Vacinas mais aplicadas</option>
+                </select>
+                <button type="button" class="btn-primary" id="btn-gerar-relatorio">Gerar</button>
+            </div>
+
+            <ul class="data-list" id="report-results">
+                <li class="data-item" style="justify-content: center; color: var(--text-muted);">
+                    Selecione as datas e o tipo de relatório, depois clique em "Gerar".
+                </li>
+            </ul>
+
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary close-panel-action">Fechar Painel</button>
+            </div>
+        </div>
+    </template>
+
+    <script src="scripts/api.js"></script>
+    <script src="scripts/navbar-loader.js"></script>
+    <script src="scripts/gestor.js"></script>
+</body>
+</html>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<persistence version="3.0" 
+            xmlns="https://jakarta.ee/xml/ns/persistence"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:schemaLocation="https://jakarta.ee/xml/ns/persistence https://jakarta.ee/xml/ns/persistence/persistence_3_0.xsd">
+
+    <persistence-unit name="meu-pu" transaction-type="RESOURCE_LOCAL">
+        <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
+
+        <properties>
+            <!-- Conexão com o Neon PostgreSQL -->
+            <property name="jakarta.persistence.jdbc.driver" value="org.postgresql.Driver" />
+            <property name="jakarta.persistence.jdbc.url" value="jdbc:postgresql://ep-muddy-bonus-ac038z13.sa-east-1.aws.neon.tech:5432/neondb?sslmode=require&amp;channelBinding=require" />
+            <property name="jakarta.persistence.jdbc.user" value="neondb_owner" />
+            <property name="jakarta.persistence.jdbc.password" value="npg_ThcNk1DQtdE4" />
+
+            <!-- Dialeto do Banco -->
+            <property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQLDialect" />
+
+            <!-- Exibe o SQL gerado no console -->
+            <property name="hibernate.show_sql" value="true" />
+            <property name="hibernate.format_sql" value="true" />
+
+            <!-- Atualiza as tabelas no banco automaticamente se a classe mudar -->
+            <property name="hibernate.hbm2ddl.auto" value="update" />
+        </properties>
+    </persistence-unit>
+</persistence>

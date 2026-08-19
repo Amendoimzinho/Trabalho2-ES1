@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patas Felizes - Área do Cliente</title>
+    <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+    <header id="global-header" class="header-container"></header>
+
+    <main class="main-container">
+        <section class="options-container">
+            <!-- Sem tela de login/sessão ainda: os templates de auto-cadastro
+                 seguem comentados. Quando vocês tiverem autenticação, é só
+                 criar POST /api/clientes (self-cadastro) e um Controller de
+                 login, e reativar esses botões. -->
+            <button class="btn-category direct-action" data-title="Agendar Atendimento" data-template="tmpl-self-agendamento">
+                Agendar Atendimento
+            </button>
+        </section>
+
+        <section id="dynamic-panel" class="panel-container">
+            <div class="panel-header">
+                <h2 id="panel-title">Título</h2>
+                <button id="close-panel" class="btn-close">&times;</button>
+            </div>
+
+            <div id="panel-dynamic-body" class="panel-body"></div>
+        </section>
+    </main>
+
+    <template id="tmpl-self-agendamento">
+        <form class="modal-form">
+            <select name="nomeAnimal" id="select-pet-agendamento" required>
+                <option value="" disabled selected>Carregando pets...</option>
+            </select>
+            <select name="motivo" required>
+                <option value="" disabled selected>Motivo da visita...</option>
+                <option>Consulta Geral</option>
+                <option>Vacina</option>
+                <option>Banho & Tosa</option>
+            </select>
+            <input type="date" name="data" required>
+            <input type="time" name="hora" required>
+
+            <div class="modal-footer">
+                <button type="button" class="btn-secondary close-panel-action">Cancelar</button>
+                <button type="button" class="btn-primary close-panel-action">Confirmar Agendamento</button>
+            </div>
+        </form>
+    </template>
+
+    <script src="scripts/api.js"></script>
+    <script src="scripts/navbar-loader.js"></script>
+    <script src="scripts/cliente.js"></script>
+</body>
+</html>
