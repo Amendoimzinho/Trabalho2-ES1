@@ -1,47 +1,47 @@
-// package com.patasfelizes.api.controller;
+package com.patasfelizes.api.controller;
 
-// import org.springframework.beans.factory.annotation.Autowired;
-// import org.springframework.http.ResponseEntity;
-// import org.springframework.web.bind.annotation.GetMapping;
-// import org.springframework.web.bind.annotation.PostMapping;
-// import org.springframework.web.bind.annotation.RequestBody;
-// import org.springframework.web.bind.annotation.RequestMapping;
-// import org.springframework.web.bind.annotation.RestController;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-// import com.patasfelizes.api.dto.GeminiEntradaDTO;
-// import com.patasfelizes.api.dto.GeminiSaidaDTO;
-// import com.patasfelizes.api.service.ServiceGemini;
+import com.patasfelizes.api.dto.GeminiEntradaDTO;
+import com.patasfelizes.api.dto.GeminiSaidaDTO;
+import com.patasfelizes.api.service.ServiceGemini;
 
 
-// @RestController
-// @RequestMapping("/api/gemini")
-// public class ControllerGemini {
+@RestController
+@RequestMapping("/api/gemini")
+public class ControllerGemini {
     
-//     @Autowired
-//     private ServiceGemini serviceGemini;
+    @Autowired
+    private ServiceGemini serviceGemini;
 
-//     @GetMapping("/teste")
-//     public String testeConexão() {
-//         return serviceGemini.teste();
-//     }
+    @GetMapping("/teste")
+    public String testeConexão() {
+        return serviceGemini.teste();
+    }
     
     
-//     @PostMapping("/perguntar")
-//     public ResponseEntity<GeminiSaidaDTO> perguntar(@RequestBody GeminiEntradaDTO entrada) {
-//         if (entrada.getMensagem() == null || entrada.getMensagem().trim().isEmpty()) {
-//             GeminiSaidaDTO erro = new GeminiSaidaDTO();
-//             erro.setResposta("Por favor, envie uma mensagem para o assistente.");
-//             return ResponseEntity.badRequest().body(erro);
-//         }
+    @PostMapping("/perguntar")
+    public ResponseEntity<GeminiSaidaDTO> perguntar(@RequestBody GeminiEntradaDTO entrada) {
+        if (entrada.getMensagem() == null || entrada.getMensagem().trim().isEmpty()) {
+            GeminiSaidaDTO erro = new GeminiSaidaDTO();
+            erro.setResposta("Por favor, envie uma mensagem para o assistente.");
+            return ResponseEntity.badRequest().body(erro);
+        }
         
-//         try {
-//             GeminiSaidaDTO saida = serviceGemini.chamarGemini(entrada);
-//             return ResponseEntity.ok(saida);
+        try {
+            GeminiSaidaDTO saida = serviceGemini.chamarGemini(entrada);
+            return ResponseEntity.ok(saida);
             
-//         } catch (Exception e) {
-//             GeminiSaidaDTO erro = new GeminiSaidaDTO();
-//             erro.setResposta("Desculpe, ocorreu um erro: " + e.getMessage());
-//             return ResponseEntity.status(500).body(erro);
-//         }
-//     }
-// }
+        } catch (Exception e) {
+            GeminiSaidaDTO erro = new GeminiSaidaDTO();
+            erro.setResposta("Desculpe, ocorreu um erro: " + e.getMessage());
+            return ResponseEntity.status(500).body(erro);
+        }
+    }
+}
