@@ -13,7 +13,6 @@ import com.google.genai.Client;
 import com.google.genai.types.Content;
 import com.google.genai.types.FunctionCall;
 import com.google.genai.types.FunctionDeclaration;
-import com.google.genai.types.FunctionResponse;
 import com.google.genai.types.GenerateContentConfig;
 import com.google.genai.types.GenerateContentResponse;
 import com.google.genai.types.Part;
@@ -126,7 +125,8 @@ public class ServiceGemini {
 
                 Object resultado = executarFuncao(nomeFuncao, argumentos);
 
-                String respostaFinal = enviarResultadoParaIA(entrada.getMensagem(), functionCall, resultado, config);
+                // Passa o resultado formatado em texto seguro para evitar a exceção do SDK
+                String respostaFinal = enviarResultadoParaIA(entrada.getMensagem(), nomeFuncao, resultado, config);
 
                 GeminiSaidaDTO saida = new GeminiSaidaDTO();
                 saida.setResposta(respostaFinal);
@@ -217,46 +217,21 @@ public class ServiceGemini {
     // RETORNO DO RESULTADO DA TOOL PARA A IA SINTETIZAR
     // ================================================================
 
-    private String enviarResultadoParaIA(String promptUsuario, FunctionCall functionCall, Object resultado, GenerateContentConfig config) {
+    private String enviarResultadoParaIA(String promptUsuario, String nomeFuncao, Object resultado, GenerateContentConfig config) {
         try {
-            // Converte o retorno do Hibernate/Service em JSON String simples para evitar estouro de recursão
             String resultadoJson = objectMapper.writeValueAsString(resultado);
 
-            Content userMsg = Content.builder()
-                    .role("user")
-                    .parts(Arrays.asList(Part.builder().text(promptUsuario).build()))
-                    .build();
+            // Monta uma mensagem com o resultado textual da execução da ferramenta
+            String promptSintese = String.format(
+                "Pergunta do Usuário: %s\n\n" +
+                "A ferramenta '%s' foi executada com o seguinte resultado do banco de dados:\n%s\n\n" +
+                "Por favor, responda ao usuário com base nesses dados retornados de forma clara e amigável.",
+                promptUsuario, nomeFuncao, resultadoJson
+            );
 
-            Content modelMsg = Content.builder()
-                    .role("model")
-                    .parts(Arrays.asList(
-                        Part.builder()
-                            .functionCall(functionCall)
-                            .build()
-                    ))
-                    .build();
-
-            Map<String, Object> responseMap = new HashMap<>();
-            responseMap.put("result", resultadoJson);
-
-            Content functionResponseMsg = Content.builder()
-                    .role("user")
-                    .parts(Arrays.asList(
-                        Part.builder()
-                            .functionResponse(
-                                FunctionResponse.builder()
-                                    .name(functionCall.name().orElse(""))
-                                    .response(responseMap)
-                                    .build()
-                            )
-                            .build()
-                    ))
-                    .build();
-
-            // Faz a segunda chamada enviando o histórico com o resultado do Banco
             GenerateContentResponse responseFinal = client.models.generateContent(
                     MODELO,
-                    Arrays.asList(userMsg, modelMsg, functionResponseMsg),
+                    promptSintese,
                     config
             );
 
