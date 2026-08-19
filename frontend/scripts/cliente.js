@@ -1,122 +1,103 @@
-// scripts/cliente.js
+document.addEventListener('DOMContentLoaded', async () => {
+  // 1. NAVEGAÇÃO ENTRE ABAS
+  const navButtons = document.querySelectorAll('.subnav-btn');
+  const sections = document.querySelectorAll('.content-section');
 
-document.addEventListener("DOMContentLoaded", () => {
-    const actionButtons = document.querySelectorAll(".direct-action");
+  navButtons.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      navButtons.forEach((b) => b.classList.remove('active'));
+      sections.forEach((s) => s.classList.remove('active'));
 
-    const panel = document.getElementById("dynamic-panel");
-    const panelTitle = document.getElementById("panel-title");
-    const panelDynamicBody = document.getElementById("panel-dynamic-body");
-
-    actionButtons.forEach(btn => {
-        btn.addEventListener("click", () => {
-            const title = btn.getAttribute("data-title");
-            const templateId = btn.getAttribute("data-template");
-
-            panelTitle.innerText = title;
-            panelDynamicBody.innerHTML = "";
-
-            const template = document.getElementById(templateId);
-            if (template) {
-                const clone = template.content.cloneNode(true);
-                panelDynamicBody.appendChild(clone);
-            }
-
-            panel.classList.add("active-panel");
-            setTimeout(() => panel.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50);
-
-            if (templateId === "tmpl-self-agendamento") {
-                configurarAgendamento();
-            }
-        });
+      btn.classList.add('active');
+      const targetId = btn.getAttribute('data-target');
+      const targetSection = document.getElementById(targetId);
+      if (targetSection) targetSection.classList.add('active');
     });
+  });
 
-    const closePanel = () => panel.classList.remove("active-panel");
-    document.getElementById("close-panel")?.addEventListener("click", closePanel);
-    panel.addEventListener("click", (e) => {
-        if (e.target.closest(".close-panel-action")) closePanel();
-    });
-});
+  // 2. POVOAR LISTA DE VETERINÁRIOS NO SELECT
+  const selectVet = document.getElementById('select-vet-agendamento');
+  try {
+    const veterinarios = await api.listarVeterinarios();
+    if (selectVet && Array.isArray(veterinarios)) {
+      veterinarios.forEach(v => {
+        const opt = document.createElement('option');
+        opt.value = v.id || v.idVeterinario;
+        opt.textContent = `Dr(a). ${v.nome || v.nomeVeterinario} (CRMV: ${v.crmv || '-'})`;
+        selectVet.appendChild(opt);
+      });
+    }
+  } catch (err) {
+    console.warn('Não foi possível carregar veterinários automaticamente:', err);
+  }
 
-// ==========================================================================
-// LIGAÇÃO COM A API
-// ==========================================================================
-async function configurarAgendamento() {
-    const form = document.getElementById("panel-dynamic-body").querySelector("form");
-    const selectPet = document.getElementById("select-pet-agendamento");
-    const btnSalvar = form.querySelector(".btn-primary");
+  // 3. BUSCA DE DADOS DO TUTOR E SEUS PETS
+  const btnBuscar = document.getElementById('btn-buscar-tutor');
+  const inputCpf = document.getElementById('input-cpf-filtro');
+  const gridPets = document.getElementById('grid-pets');
+  const selectPet = document.getElementById('select-pet-agendamento');
 
-    // Carrega os animais disponíveis
-    try {
-        let animais = await api.get("/animais");
-        if (!animais || animais.length === 0) {
-            // Fallback: busca dos atendimentos
-            const atendimentos = await api.get("/atendimentos");
-            const animaisMap = new Map();
-            if (atendimentos) {
-                atendimentos.forEach(a => {
-                    if (a.nroAnimal && !animaisMap.has(a.nroAnimal)) {
-                        animaisMap.set(a.nroAnimal, {
-                            nroAnimal: a.nroAnimal,
-                            nome: a.nomeAnimal || 'Animal ' + a.nroAnimal
-                        });
-                    }
-                });
-                animais = Array.from(animaisMap.values());
-            }
-        }
-
-        selectPet.innerHTML = "";
-        if (!animais || animais.length === 0) {
-            selectPet.innerHTML = '<option value="" disabled selected>Nenhum animal cadastrado ainda</option>';
-        } else {
-            selectPet.innerHTML = '<option value="" disabled selected>Selecione o Animal...</option>';
-            animais.forEach(a => {
-                const opt = document.createElement("option");
-                opt.value = a.nome ?? a.nomeAnimal ?? "";
-                opt.dataset.nroAnimal = a.nroAnimal ?? "";
-                opt.textContent = `${a.nome ?? a.nomeAnimal ?? '?'}${a.tipoAnimal ? " (" + a.tipoAnimal + ")" : ""}`;
-                selectPet.appendChild(opt);
-            });
-        }
-    } catch (err) {
-        selectPet.innerHTML = '<option value="" disabled selected>Erro ao carregar animais</option>';
-        mostrarErroApi(err);
+  btnBuscar.addEventListener('click', async () => {
+    const cpf = inputCpf.value.trim();
+    if (!cpf) {
+      alert('Por favor, informe seu CPF.');
+      return;
     }
 
-    btnSalvar.addEventListener("click", async () => {
-        if (!form.reportValidity()) return;
+    try {
+      const cliente = await api.buscarClientePorCpf(cpf);
+      if (!cliente) {
+        gridPets.innerHTML = '<p style="color: var(--danger);">Cliente não encontrado com este CPF.</p>';
+        return;
+      }
 
-        const opcaoSelecionada = selectPet.options[selectPet.selectedIndex];
-        
-        // Mapeia motivo para nroTipoAtendimento
-        const motivoMap = {
-            "Consulta Geral": 1,
-            "Vacina": 2,
-            "Banho & Tosa": 1
-        };
+      // Renderizar Pets
+      const pets = cliente.animais || cliente.pets || [];
+      if (pets.length === 0) {
+        gridPets.innerHTML = '<p style="color: var(--muted-text);">Você ainda não tem animais cadastrados.</p>';
+      } else {
+        gridPets.innerHTML = pets.map(p => `
+          <div style="background: var(--light-blue); padding: 1.2rem; border-radius: 10px; border-left: 4px solid var(--secondary-blue);">
+            <h3 style="color: var(--primary-blue); margin-bottom: 8px;">🐾 ${p.nome || p.nomeAnimal}</h3>
+            <p style="font-size: 0.9rem; color: var(--dark-text);"><strong>Idade:</strong> ${p.idade || '-'} anos</p>
+            <p style="font-size: 0.9rem; color: var(--dark-text);"><strong>Peso:</strong> ${p.peso ? p.peso + ' kg' : '-'}</p>
+          </div>
+        `).join('');
 
-        const dados = {
-            nroTipoAtendimento: motivoMap[form.motivo.value] || 1,
-            nroAnimal: parseInt(opcaoSelecionada.dataset.nroAnimal) || 0,
-            nroVeterinario: 1, // Placeholder
-            ini_dataAtendimento: `${form.data.value}T${form.hora.value}:00`,
-            end_dataAtendimento: `${form.data.value}T${form.hora.value}:00`,
-            observacoes: form.motivo.value || ""
-        };
+        // Preenche o select do agendamento
+        selectPet.innerHTML = '<option value="">Selecione um pet...</option>';
+        pets.forEach(p => {
+          const opt = document.createElement('option');
+          opt.value = p.id || p.idAnimal;
+          opt.textContent = p.nome || p.nomeAnimal;
+          selectPet.appendChild(opt);
+        });
+      }
+    } catch (err) {
+      console.error(err);
+      gridPets.innerHTML = '<p style="color: var(--danger);">Erro ao buscar informações do tutor.</p>';
+    }
+  });
 
-        if (!dados.nroAnimal) {
-            alert("Selecione um animal válido!");
-            return;
-        }
+  // 4. ENVIO DO FORMULÁRIO DE AGENDAMENTO
+  const formAgendamento = document.getElementById('form-agendamento');
+  formAgendamento.addEventListener('submit', async (e) => {
+    e.preventDefault();
 
-        try {
-            await api.post("/atendimentos", dados);
-            alert("✅ Atendimento agendado com sucesso!");
-            form.reset();
-            selectPet.innerHTML = '<option value="" disabled selected>Carregando...</option>';
-            configurarAgendamento(); // Recarrega a lista
-        } catch (err) {
-            mostrarErroApi(err);
-        }
-    });
-}
+    const novoAgendamento = {
+      idAnimal: document.getElementById('select-pet-agendamento').value,
+      idVeterinario: document.getElementById('select-vet-agendamento').value,
+      data: document.getElementById('data-agendamento').value,
+      horario: document.getElementById('hora-agendamento').value,
+      motivo: document.getElementById('motivo-consulta').value
+    };
+
+    try {
+      await api.criarAtendimento(novoAgendamento);
+      alert('Agendamento realizado com sucesso!');
+      formAgendamento.reset();
+    } catch (err) {
+      alert('Erro ao agendar: ' + err.message);
+    }
+  });
+});
