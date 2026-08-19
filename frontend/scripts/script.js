@@ -1,5 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
+  // ========================================================
   // 1. NAVEGAÇÃO ENTRE ABAS
+  // ========================================================
   const navButtons = document.querySelectorAll('.subnav-btn');
   const sections = document.querySelectorAll('.content-section');
 
@@ -18,7 +20,134 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // 2. CARREGAR TABELAS DO BANCO
+  // ========================================================
+  // 2. MÁSCARAS DE ENTRADA (CPF, TELEFONE, CEP)
+  // ========================================================
+  const inputCpf = document.getElementById('cli-cpf');
+  const inputTelefone = document.getElementById('cli-telefone');
+  const inputCep = document.getElementById('cli-cep');
+
+  // Máscara CPF: 000.000.000-00
+  inputCpf?.addEventListener('input', (e) => {
+    let v = e.target.value.replace(/\D/g, '');
+    v = v.replace(/(\d{3})(\d)/, '$1.$2');
+    v = v.replace(/(\d{3})(\d)/, '$1.$2');
+    v = v.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+    e.target.value = v;
+  });
+
+  // Máscara Telefone: (00) 00000-0000
+  inputTelefone?.addEventListener('input', (e) => {
+    let v = e.target.value.replace(/\D/g, '');
+    v = v.replace(/^(\d{2})(\d)/g, '($1) $2');
+    v = v.replace(/(\d)(\d{4})$/, '$1-$2');
+    e.target.value = v;
+  });
+
+  // Máscara CEP: 00000-000
+  inputCep?.addEventListener('input', (e) => {
+    let v = e.target.value.replace(/\D/g, '');
+    v = v.replace(/^(\d{5})(\d)/, '$1-$2');
+    e.target.value = v;
+  });
+
+  // ========================================================
+  // 3. CONSULTA AUTOMÁTICA DE CEP E CÓDIGO IBGE (ViaCEP)
+  // ========================================================
+  inputCep?.addEventListener('blur', async () => {
+    const cepLimpo = inputCep.value.replace(/\D/g, '');
+
+    if (cepLimpo.length !== 8) return;
+
+    // Feedback visual
+    const campoRua = document.getElementById('cli-logradouro');
+    const campoBairro = document.getElementById('cli-bairro');
+    const campoCidade = document.getElementById('cli-cidade');
+    const campoUf = document.getElementById('cli-uf');
+    const campoIbge = document.getElementById('cli-ibge');
+
+    if (campoRua) campoRua.value = 'Buscando endereço...';
+
+    try {
+      const res = await fetch(`https://viacep.com.br/ws/${cepLimpo}/json/`);
+      const dados = await res.json();
+
+      if (dados.erro) {
+        alert('CEP não encontrado. Verifique os dígitos informados.');
+        limparCamposEndereco();
+        return;
+      }
+
+      // Preenche os campos do formulário com dados do IBGE/ViaCEP
+      if (campoRua) campoRua.value = dados.logradouro || '';
+      if (campoBairro) campoBairro.value = dados.bairro || '';
+      if (campoCidade) campoCidade.value = dados.localidade || '';
+      if (campoUf) campoUf.value = dados.uf || '';
+      if (campoIbge) campoIbge.value = dados.ibge || '';
+
+      // Foca automaticamente no campo do número
+      document.getElementById('cli-numero')?.focus();
+
+    } catch (err) {
+      console.error('Erro na consulta do CEP:', err);
+      alert('Não foi possível consultar o CEP no momento.');
+      limparCamposEndereco();
+    }
+  });
+
+  function limparCamposEndereco() {
+    const ids = ['cli-logradouro', 'cli-bairro', 'cli-cidade', 'cli-uf', 'cli-ibge'];
+    ids.forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+  }
+
+  // ========================================================
+  // 4. SUBMISSÃO DO FORMULÁRIO DE CLIENTE
+  // ========================================================
+  const formCliente = document.getElementById('form-cadastrar-cliente');
+  if (formCliente) {
+    formCliente.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const telLimpo = document.getElementById('cli-telefone').value.replace(/\D/g, '');
+      const cpfLimpo = document.getElementById('cli-cpf').value.replace(/\D/g, '');
+      const cepLimpo = document.getElementById('cli-cep').value.replace(/\D/g, '');
+
+      // Payload plano compatível com o Controller/Model do Spring Boot
+      const novoCliente = {
+        nome: document.getElementById('cli-nome').value.trim(),
+        cpf: cpfLimpo,
+        email: document.getElementById('cli-email').value.trim(),
+        ddd: telLimpo.slice(0, 2),
+        telefone: telLimpo.slice(2),
+        cep: cepLimpo,
+        logradouro: document.getElementById('cli-logradouro')?.value || '',
+        numero: document.getElementById('cli-numero')?.value.trim() || '',
+        complemento: document.getElementById('cli-complemento')?.value.trim() || '',
+        bairro: document.getElementById('cli-bairro')?.value || '',
+        cidade: document.getElementById('cli-cidade')?.value || '',
+        estado: document.getElementById('cli-uf')?.value || '',
+        ibge: document.getElementById('cli-ibge')?.value || ''
+      };
+
+      try {
+        await api.criarCliente(novoCliente);
+        alert('✅ Cliente e endereço cadastrados com sucesso no Banco de Dados!');
+        formCliente.reset();
+        limparCamposEndereco();
+        carregarListaClientes();
+      } catch (err) {
+        console.error('Detalhes do erro:', err);
+        alert('❌ Erro retornado pelo servidor:\n' + err.message);
+      }
+    });
+  }
+
+  // ========================================================
+  // 5. CARREGAR TABELAS DO BANCO
+  // ========================================================
   async function carregarListaClientes() {
     const tbody = document.querySelector('#tabela-clientes tbody');
     if (!tbody) return;
@@ -26,19 +155,31 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const clientes = await api.listarClientes();
       if (!clientes || clientes.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Nenhum cliente cadastrado.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--muted-text);">Nenhum cliente cadastrado.</td></tr>';
         return;
       }
 
-      tbody.innerHTML = clientes.map((c) => `
-        <tr>
-          <td>${c.id || c.idCliente || '-'}</td>
-          <td><strong>${c.nome || c.nomeCliente || '-'}</strong></td>
-          <td>${c.cpf || c.CPF || '-'}</td>
-          <td>${c.telefone || '-'}</td>
-          <td>${c.email || '-'}</td>
-        </tr>
-      `).join('');
+      tbody.innerHTML = clientes.map((c) => {
+        // Formata visualmente o CPF (000.000.000-00)
+        const cpfRaw = c.cpf || c.CPF || '';
+        const cpfFormatado = cpfRaw.length === 11 
+          ? cpfRaw.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4') 
+          : (cpfRaw || '-');
+
+        const cidadeUf = c.endereco 
+          ? `${c.endereco.cidade || ''} / ${c.endereco.estado || ''}` 
+          : (c.cidade ? `${c.cidade} / ${c.estado || ''}` : '-');
+
+        return `
+          <tr>
+            <td>#${c.id || c.idCliente || '-'}</td>
+            <td><strong>${c.nome || c.nomeCliente || '-'}</strong></td>
+            <td>${cpfFormatado}</td>
+            <td>${c.telefone || '-'}</td>
+            <td>${cidadeUf}</td>
+          </tr>
+        `;
+      }).join('');
     } catch (err) {
       console.error(err);
       tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: red;">Erro ao carregar dados do servidor.</td></tr>';
@@ -58,8 +199,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
       tbody.innerHTML = vets.map((v) => `
         <tr>
-          <td>${v.id || v.idVeterinario || '-'}</td>
-          <td><strong>${v.nome || v.nomeVeterinario || '-'}</strong></td>
+          <td>#${v.id || v.idVeterinario || '-'}</td>
+          <td><strong>Dr(a). ${v.nome || v.nomeVeterinario || '-'}</strong></td>
           <td><span class="badge-tag">${v.crmv || 'Sem CRMV'}</span></td>
         </tr>
       `).join('');
@@ -69,31 +210,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // 3. ENVIO DO FORMULÁRIO DE CLIENTE
-  const formCliente = document.getElementById('form-cadastrar-cliente');
-  if (formCliente) {
-    formCliente.addEventListener('submit', async (e) => {
-      e.preventDefault();
-
-      const novoCliente = {
-        nome: document.getElementById('cli-nome').value,
-        cpf: document.getElementById('cli-cpf').value,
-        telefone: document.getElementById('cli-telefone').value,
-        email: document.getElementById('cli-email').value,
-        cep: document.getElementById('cli-cep').value
-      };
-
-      try {
-        await api.criarCliente(novoCliente);
-        alert('Cliente salvo com sucesso no banco Neon!');
-        formCliente.reset();
-        carregarListaClientes();
-      } catch (err) {
-        alert('Não foi possível salvar o cliente: ' + err.message);
-      }
-    });
-  }
-
-  // Carrega os clientes na inicialização
+  // Inicializa listando os clientes ao abrir a tela
   carregarListaClientes();
 });
