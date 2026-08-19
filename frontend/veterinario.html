@@ -1,134 +1,132 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Patas Felizes - Área do Veterinário</title>
-    <link rel="stylesheet" href="styles/main.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Patinhas Felizes - Painel do Veterinário</title>
+  <link rel="stylesheet" href="styles/main.css">
 </head>
 <body>
-    <header id="global-header" class="header-container"></header>
 
-    <main class="main-container">
-        <section class="options-container">
-            <button class="btn-category direct-action" data-title="Atendimento em Andamento" data-template="tmpl-atendimento-atual">
-                Atendimento Atual
-            </button>
-            <button class="btn-category direct-action" data-title="Consultar Prontuários" data-template="tmpl-prontuario">
-                Histórico de Pets
-            </button>
-            <button class="btn-category direct-action" data-title="Minha Agenda" data-template="tmpl-agenda">
-                Ver Agenda
-            </button>
-            <button class="btn-category direct-action" data-title="Disponibilidade de Horários" data-template="tmpl-horarios">
-                Gerenciar Horários
-            </button>
-        </section>
+  <!-- BARRA SUPERIOR -->
+  <header class="navbar">
+    <a href="#" class="navbar-brand">
+      <span class="brand-badge">🐾</span> Patinhas <span style="color: var(--primary-yellow);">Felizes</span>
+    </a>
+    <nav class="navbar-roles">
+      <a href="atendente.html" class="role-btn">Atendente</a>
+      <a href="cliente.html" class="role-btn">Cliente</a>
+      <a href="gestor.html" class="role-btn">Gestor</a>
+      <a href="veterinario.html" class="role-btn active">Veterinário</a>
+    </nav>
+  </header>
 
-        <section id="dynamic-panel" class="panel-container">
-            <div class="panel-header">
-                <h2 id="panel-title">Título</h2>
-                <button id="close-panel" class="btn-close">&times;</button>
-            </div>
+  <!-- ABAS VETERINÁRIO -->
+  <nav class="subnav-container">
+    <button class="subnav-btn active" data-target="secao-fila">📋 Fila de Atendimentos</button>
+    <button class="subnav-btn" data-target="secao-consulta">🩺 Registrar Consulta</button>
+    <button class="subnav-btn" data-target="secao-vacinacao">💉 Registrar Vacinação</button>
+  </nav>
 
-            <div id="panel-dynamic-body" class="panel-body"></div>
-        </section>
-    </main>
+  <main class="main-container">
 
-    <template id="tmpl-atendimento-atual">
-        <div class="status-box">
-            <strong>Em consulta agora (15:30):</strong> Rex (Tutor: João Silva)
+    <!-- 1. SEÇÃO FILA DE ATENDIMENTOS -->
+    <section id="secao-fila" class="content-section active">
+      <div class="card-box">
+        <div class="card-header">
+          <h2>Pacientes Aguardando / Agendados</h2>
         </div>
+        <div class="table-responsive">
+          <table id="tabela-fila-vets">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Data</th>
+                <th>Paciente</th>
+                <th>Tutor</th>
+                <th>Tipo</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td colspan="6" style="text-align: center;">Carregando atendimentos...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
 
-        <form class="modal-form">
-            <label>Diagnóstico / Motivo Atualizado:</label>
-            <input type="text" placeholder="Ex: Suspeita de dermatite alérgica..." required>
-
-            <label>Prescrição de Exames:</label>
-            <textarea rows="2" placeholder="Descreva os exames necessários (Sangue, Raio-X...)"></textarea>
-
-            <label>Prescrição de Medicamentos:</label>
-            <textarea rows="3" placeholder="Ex: Antibiótico de 8h em 8h, 10 gotas..."></textarea>
-
-            <label>Encaminhamento de Vacinas:</label>
-            <select>
-                <option value="nenhuma" selected>Nenhuma nova vacina</option>
-                <option value="v10">Aplicar V10</option>
-                <option value="antirrabica">Aplicar Antirrábica</option>
-            </select>
-
-            <div class="modal-footer">
-                <button type="button" class="btn-primary close-panel-action">Salvar e Encerrar Atendimento</button>
+    <!-- 2. SEÇÃO REGISTRAR CONSULTA & PRONTUÁRIO -->
+    <section id="secao-consulta" class="content-section">
+      <div class="card-box">
+        <div class="card-header">
+          <h2>Prontuário & Atendimento Clínico</h2>
+        </div>
+        <form id="form-registro-consulta">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="consulta-id-atendimento">ID do Atendimento *</label>
+              <input type="number" id="consulta-id-atendimento" placeholder="Ex: 1" required>
             </div>
+            <div class="form-group">
+              <label for="consulta-peso">Peso Atual (kg)</label>
+              <input type="number" step="0.01" id="consulta-peso" placeholder="Ex: 12.50">
+            </div>
+            <div class="form-group">
+              <label for="consulta-temperatura">Temperatura (°C)</label>
+              <input type="number" step="0.1" id="consulta-temperatura" placeholder="Ex: 38.5">
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 15px;">
+            <label for="consulta-diagnostico">Diagnóstico / Anamnese *</label>
+            <textarea id="consulta-diagnostico" rows="3" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); font-family: inherit;" placeholder="Descreva os achados clínicos e o diagnóstico do paciente..." required></textarea>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 15px;">
+            <label for="consulta-prescricao">Prescrição de Medicamentos / Recomendações</label>
+            <textarea id="consulta-prescricao" rows="2" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border-color); font-family: inherit;" placeholder="Ex: Amoxicilina 250mg - 1 comp a cada 12h por 7 dias."></textarea>
+          </div>
+
+          <button type="submit" class="btn-primary-yellow">Finalizar e Salvar Consulta</button>
         </form>
-    </template>
+      </div>
+    </section>
 
-    <template id="tmpl-prontuario">
-        <div class="list-container">
-            <div class="filter-bar">
-                <input type="text" id="filtro-prontuario-texto" placeholder="Buscar pet por nome...">
-                <button type="button" class="btn-primary" id="btn-buscar-prontuario">Buscar</button>
-            </div>
-            <ul class="data-list" id="lista-prontuario">
-                <li class="data-item">Digite um nome e clique em Buscar.</li>
-            </ul>
+    <!-- 3. SEÇÃO REGISTRAR VACINAÇÃO -->
+    <section id="secao-vacinacao" class="content-section">
+      <div class="card-box">
+        <div class="card-header">
+          <h2>Registro de Aplicação de Vacina</h2>
         </div>
-    </template>
-
-    <template id="tmpl-agenda">
-        <div class="list-container">
-            <div class="filter-bar">
-                <input type="date" id="filtro-agenda-data" title="Data da Agenda">
+        <form id="form-registro-vacina">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="vacina-id-atendimento">ID do Atendimento *</label>
+              <input type="number" id="vacina-id-atendimento" placeholder="Ex: 1" required>
             </div>
-            <ul class="data-list" id="lista-agenda">
-                <li class="data-item">Carregando...</li>
-            </ul>
-        </div>
-    </template>
-
-    <template id="tmpl-horarios">
-        <form class="modal-form">
-            <label>Adicionar novo bloco de disponibilidade:</label>
-            <div class="filter-bar">
-                <select class="flex-2" required>
-                    <option value="" disabled selected>Dia da Semana</option>
-                    <option>Segunda-feira</option>
-                    <option>Terça-feira</option>
-                    <option>Quarta-feira</option>
-                    <option>Quinta-feira</option>
-                    <option>Sexta-feira</option>
-                </select>
-                <input type="time" title="Hora de Início" required>
-                <input type="time" title="Hora de Fim" required>
-                <button type="button" class="btn-primary">Adicionar</button>
+            <div class="form-group">
+              <label for="vacina-nome">Nome da Vacina *</label>
+              <input type="text" id="vacina-nome" placeholder="Ex: V10, Antirrábica, Giárdia..." required>
             </div>
+            <div class="form-group">
+              <label for="vacina-lote">Número do Lote</label>
+              <input type="text" id="vacina-lote" placeholder="Ex: LT-2026-X8">
+            </div>
+            <div class="form-group">
+              <label for="vacina-proxima-dose">Previsão da Próxima Dose</label>
+              <input type="date" id="vacina-proxima-dose">
+            </div>
+          </div>
+
+          <button type="submit" class="btn-primary-yellow">Salvar Registro de Vacina</button>
         </form>
+      </div>
+    </section>
 
-        <h4 class="section-title">Meus Horários Atuais:</h4>
-        <ul class="data-list">
-            <li class="data-item">
-                <div class="item-info">
-                    <strong>Segundas, Quartas e Sextas</strong>
-                    <span>Das 08:00 às 12:00</span>
-                </div>
-                <div class="item-actions">
-                    <button class="action-btn delete-btn" title="Remover Horário">🗑️</button>
-                </div>
-            </li>
-            <li class="data-item">
-                <div class="item-info">
-                    <strong>Terças e Quintas</strong>
-                    <span>Das 14:00 às 18:00</span>
-                </div>
-                <div class="item-actions">
-                    <button class="action-btn delete-btn" title="Remover Horário">🗑️</button>
-                </div>
-            </li>
-        </ul>
-    </template>
+  </main>
 
-    <script src="scripts/api.js"></script>
-    <script src="scripts/navbar-loader.js"></script>
-    <script src="scripts/veterinario.js"></script>
+  <script src="scripts/api.js"></script>
+  <script src="scripts/veterinario.js"></script>
 </body>
 </html>
