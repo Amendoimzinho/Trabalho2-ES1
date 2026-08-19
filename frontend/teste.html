@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Enviar Pergunta Gemini</title>
+</head>
+<body>
+
+    <button id="btnEnviar" onclick="enviarPergunta()">Enviar Pergunta para o Gemini</button>
+
+    <script>
+        async function enviarPergunta() {
+            const btn = document.getElementById("btnEnviar");
+            btn.disabled = true;
+            btn.innerText = "Processando...";
+
+            // Objeto que espelha o GeminiEntradaDTO esperado pelo seu backend Spring
+            const dadosEntrada = {
+                mensagem: "Me mostre os horarios do veterinario de id 2",
+                temperatura: 0.7,
+                maxTokens: 400
+            };
+
+            try {
+                alert("To testando nesse momento");
+                const response = await fetch('http://localhost:8080/api/gemini/perguntar', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(dadosEntrada)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Erro no servidor: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log("Resposta da API:", data);
+                alert("Resposta do Gemini:\n\n" + data.resposta);
+
+            } catch (error) {
+                console.error("Erro ao enviar requisição:", error);
+                alert("Ocorreu um erro ao consultar o assistente." + error);
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Enviar Pergunta para o Gemini";
+            }
+        }
+    </script>
+</body>
+</html>

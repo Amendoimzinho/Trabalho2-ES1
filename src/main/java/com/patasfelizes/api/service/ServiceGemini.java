@@ -2,21 +2,17 @@ package com.patasfelizes.api.service;
 
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.genai.Client;
 import com.google.genai.types.Content;
 import com.google.genai.types.FunctionCall;
 import com.google.genai.types.FunctionDeclaration;
-import com.google.genai.types.FunctionResponse;
 import com.google.genai.types.GenerateContentConfig;
 import com.google.genai.types.GenerateContentResponse;
 import com.google.genai.types.Part;
@@ -24,75 +20,85 @@ import com.google.genai.types.Schema;
 import com.google.genai.types.Tool;
 import com.patasfelizes.api.dto.GeminiEntradaDTO;
 import com.patasfelizes.api.dto.GeminiSaidaDTO;
+import com.patasfelizes.api.model.Atendimento;
 
 @Service
 public class ServiceGemini {
 
     private final Client client;
+    private final ObjectMapper objectMapper;
+    
+    // Injeção direta dos seus Services existentes no projeto
+    private final ServiceClientes clienteService;
+    private final ServiceAtendimento atendimentoService;
+    private final ServiceVeterinario veterinarioService;
+
+    // Modelo estável oficial suportado pela SDK Java
     private static final String MODELO = "gemini-flash-latest";
-    private static final String API_URL = "http://localhost:8080/api";
 
     private static final String SYSTEM_PROMPT = """
         Você é um assistente virtual especializado de uma clínica veterinária chamada "PatasFelizes".
         
         SUA FUNÇÃO:
-        - Você ajuda Clientes com dúvidas sobre consultas, Atendimentos e informações da clínica
+        - Você ajuda Clientes com dúvidas sobre atendimentos e informações da clínica
         - Você é educado, empático e profissional
         - Você NUNCA dá diagnósticos médicos
-        - Você sempre recomenda procurar um médico para qualquer sintoma
+        - Você sempre recomenda procurar um médico veterinário para qualquer sintoma
         
         REGRAS IMPORTANTES:
         1. Para informações sobre Clientes, use a função 'buscarCliente'
-        2. Para agendar consultas, use a função 'agendarConsulta'
-        3. Para verificar horários disponíveis, use a função 'verificarHorarios'
-        4. Para informações sobre Atendimentos, use a função 'buscarAtendimento'
+        2. Para agendar um atendimento/consulta, use a função 'agendarAtendimento'
+        3. Para verificar horários disponíveis de um veterinário, use a função 'verificarHorarios'
+        4. Para buscar dados de atendimentos existentes, use a função 'buscarAtendimento'
         5. SEMPRE confirme os dados antes de agendar algo
-        
-        EXEMPLOS DE RESPOSTA:
-        - "Olá! Posso ajudar com informações sobre a clínica. Como posso auxiliá-lo hoje?"
-        - "Entendi que você quer agendar uma consulta. Vou verificar os horários disponíveis para você."
-        - "Com base nas informações, aqui estão os dados do Cliente: [dados]"
         
         Lembre-se: Você é um assistente amigável e prestativo da Clínica PatasFelizes!
         """;
 
-    public ServiceGemini(@Value("${gemini.api.key}") String apiKey) {
-        // Inicializa o cliente oficial
+    public ServiceGemini(
+            @Value("${gemini.api.key}") String apiKey,
+            ServiceClientes clienteService,
+            ServiceAtendimento atendimentoService,
+            ServiceVeterinario veterinarioService) {
+
+        System.out.println("Chave de API carregada: " + (apiKey != null && !apiKey.isBlank() ? apiKey.substring(0, 5) + "..." : "NULA"));
+        
         this.client = Client.builder()
                 .apiKey(apiKey)
                 .build();
+
+        this.objectMapper = new ObjectMapper();
+        this.clienteService = clienteService;
+        this.atendimentoService = atendimentoService;
+        this.veterinarioService = veterinarioService;
     }
 
     public String teste() {
-    try {
-        GenerateContentResponse response = client.models.generateContent(MODELO, "Ping?", null);
-        return response.text();
-    } catch (Exception e) {
-        return "Erro no teste: " + e.getMessage();
+        try {
+            GenerateContentResponse response = client.models.generateContent(MODELO, "Ping?", null);
+            return response.text();
+        } catch (Exception e) {
+            return "Erro no teste: " + e.getMessage();
+        }
     }
-}
 
-    /**
-     * MÉTODO PRINCIPAL - Executa a chamada do Gemini com SDK Oficial e Function Calling
-     */
     public GeminiSaidaDTO chamarGemini(GeminiEntradaDTO entrada) {
         long inicio = System.currentTimeMillis();
 
         try {
-            // 1. Configura System Instruction, Temperatura, Tokens e Tools
             GenerateContentConfig config = GenerateContentConfig.builder()
                     .systemInstruction(
                         Content.builder()
                             .parts(Arrays.asList(Part.builder().text(SYSTEM_PROMPT).build()))
                             .build()
                     )
-                    .temperature(entrada.getTemperatura().floatValue())
-                    .maxOutputTokens(entrada.getMaxTokens())
+                    .temperature(entrada.getTemperatura() != null ? entrada.getTemperatura().floatValue() : 0.7f)
+                    .maxOutputTokens(entrada.getMaxTokens() != null ? entrada.getMaxTokens() : 800)
                     .tools(Arrays.asList(
                         Tool.builder()
                             .functionDeclarations(Arrays.asList(
                                 criarToolBuscarCliente(),
-                                criarToolAgendarConsulta(),
+                                criarToolAgendarAtendimento(),
                                 criarToolVerificarHorarios(),
                                 criarToolBuscarAtendimento()
                             ))
@@ -100,22 +106,27 @@ public class ServiceGemini {
                     ))
                     .build();
 
-            // 2. Primeira Chamada para o Gemini
             GenerateContentResponse response = client.models.generateContent(MODELO, entrada.getMensagem(), config);
 
-            // 3. Verifica se o Gemini solicitou execução de alguma Function
-            if (response.functionCalls() != null && !response.functionCalls().isEmpty()) {
-                FunctionCall functionCall = response.functionCalls().get(0);
-                String nomeFuncao = functionCall.name().get();
+            // Captura functionCalls com verificação de segurança contra exceções da SDK
+            List<FunctionCall> functionCalls = null;
+            try {
+                functionCalls = response.functionCalls();
+            } catch (Exception e) {
+                functionCalls = null;
+            }
+
+            if (functionCalls != null && !functionCalls.isEmpty()) {
+                FunctionCall functionCall = functionCalls.get(0);
+                String nomeFuncao = functionCall.name().orElse("");
                 Map<String, Object> argumentos = functionCall.args().orElse(new HashMap<>());
 
                 System.out.println("🤖 Gemini solicitou execução da Tool: " + nomeFuncao + " com args: " + argumentos);
 
-                // Executa a lógica da nossa API local
                 Object resultado = executarFuncao(nomeFuncao, argumentos);
 
-                // Reenvia o resultado da função para o Gemini gerar a resposta final amigável
-                String respostaFinal = enviarResultadoParaIA(entrada.getMensagem(), functionCall, resultado, config);
+                // Passa o resultado formatado em texto seguro para evitar a exceção do SDK
+                String respostaFinal = enviarResultadoParaIA(entrada.getMensagem(), nomeFuncao, resultado, config);
 
                 GeminiSaidaDTO saida = new GeminiSaidaDTO();
                 saida.setResposta(respostaFinal);
@@ -125,7 +136,7 @@ public class ServiceGemini {
                 return saida;
             }
 
-            // Caso seja uma resposta simples (sem chamada de função)
+            // Resposta normal em texto quando nenhuma Tool é acionada
             GeminiSaidaDTO saida = new GeminiSaidaDTO();
             saida.setResposta(response.text());
             saida.setModeloUsado(MODELO);
@@ -134,18 +145,19 @@ public class ServiceGemini {
             return saida;
 
         } catch (Exception e) {
+            e.printStackTrace();
             throw new RuntimeException("Erro ao processar chamada no Gemini: " + e.getMessage(), e);
         }
     }
 
     // ================================================================
-    // DECLARAÇÃO DAS TOOLS / FUNCTIONS (Usando Strings em vez de Type)
+    // DECLARAÇÃO DAS TOOLS / FUNCTIONS
     // ================================================================
 
     private FunctionDeclaration criarToolBuscarCliente() {
         Map<String, Schema> properties = new HashMap<>();
         properties.put("nomeCliente", Schema.builder().type("STRING").description("Nome do Cliente").build());
-        properties.put("nroCliente", Schema.builder().type("STRING").description("ID do cliente").build());
+        properties.put("nroCliente", Schema.builder().type("INTEGER").description("ID do cliente").build());
 
         return FunctionDeclaration.builder()
                 .name("buscarCliente")
@@ -154,21 +166,21 @@ public class ServiceGemini {
                 .build();
     }
 
-    private FunctionDeclaration criarToolAgendarConsulta() {
+    private FunctionDeclaration criarToolAgendarAtendimento() {
         Map<String, Schema> properties = new HashMap<>();
         properties.put("nroAnimal", Schema.builder().type("INTEGER").description("ID do animal").build());
         properties.put("nroVeterinario", Schema.builder().type("INTEGER").description("ID do veterinário").build());
-        properties.put("data", Schema.builder().type("STRING").description("Data no formato YYYY-MM-DD").build());
-        properties.put("horario", Schema.builder().type("STRING").description("Horário HH:mm:ss").build());
-        properties.put("nroTipoAtendimento", Schema.builder().type("STRING").description("1 para consulta, 2 para vacina").build());
+        properties.put("ini_dataAtendimento", Schema.builder().type("STRING").description("Data e Hora ISO ex: 2026-08-18T10:00:00").build());
+        properties.put("nroTipoAtendimento", Schema.builder().type("INTEGER").description("ID do tipo de atendimento").build());
+        properties.put("observacoes", Schema.builder().type("STRING").description("Observações da consulta").build());
 
         return FunctionDeclaration.builder()
-                .name("agendarConsulta")
-                .description("Agenda uma consulta para um animal registrando o veterinário responsável")
+                .name("agendarAtendimento")
+                .description("Agenda um atendimento/consulta para um animal")
                 .parameters(Schema.builder()
                         .type("OBJECT")
                         .properties(properties)
-                        .required(Arrays.asList("nroAnimal", "data", "horario", "nroVeterinario"))
+                        .required(Arrays.asList("nroAnimal", "nroVeterinario", "ini_dataAtendimento", "nroTipoAtendimento"))
                         .build())
                 .build();
     }
@@ -179,87 +191,67 @@ public class ServiceGemini {
 
         return FunctionDeclaration.builder()
                 .name("verificarHorarios")
-                .description("Verifica horários disponíveis de um veterinário")
-                .parameters(Schema.builder().type("OBJECT").properties(properties).build())
+                .description("Verifica horários livres e disponíveis de um veterinário")
+                .parameters(Schema.builder()
+                        .type("OBJECT")
+                        .properties(properties)
+                        .required(Arrays.asList("nroVeterinario"))
+                        .build())
                 .build();
     }
 
     private FunctionDeclaration criarToolBuscarAtendimento() {
         Map<String, Schema> properties = new HashMap<>();
-        properties.put("nroTipoAtendimento", Schema.builder().type("INTEGER").description("ID do tipo de atendimento").build());
         properties.put("nomeCliente", Schema.builder().type("STRING").description("Nome do cliente").build());
         properties.put("nroAnimal", Schema.builder().type("INTEGER").description("ID do animal").build());
+        properties.put("nroTipoAtendimento", Schema.builder().type("INTEGER").description("ID do tipo de atendimento").build());
 
         return FunctionDeclaration.builder()
                 .name("buscarAtendimento")
-                .description("Busca informações sobre um Atendimento médico")
+                .description("Busca histórico de atendimentos gravados")
                 .parameters(Schema.builder().type("OBJECT").properties(properties).build())
                 .build();
     }
 
     // ================================================================
-    // RETORNO DO RESULTADO PARA A IA
+    // RETORNO DO RESULTADO DA TOOL PARA A IA SINTETIZAR
     // ================================================================
 
-    private String enviarResultadoParaIA(String promptUsuario, FunctionCall functionCall, Object resultado, GenerateContentConfig config) {
+    private String enviarResultadoParaIA(String promptUsuario, String nomeFuncao, Object resultado, GenerateContentConfig config) {
         try {
-            // Reassocia o histórico completo da conversa para manter contexto:
-            // 1. Pergunta do Usuário
-            Content userMsg = Content.builder()
-                    .role("user")
-                    .parts(Arrays.asList(Part.builder().text(promptUsuario).build()))
-                    .build();
+            String resultadoJson = objectMapper.writeValueAsString(resultado);
 
-            // 2. Pedido de Function Call do Gemini
-            Content modelMsg = Content.builder()
-                    .role("model")
-                    .parts(Arrays.asList(
-                        Part.builder()
-                            .functionCall(functionCall)
-                            .build()
-                    ))
-                    .build();
-
-            // 3. Resposta da Function Call com os dados buscados da API
-            Map<String, Object> responseMap = new HashMap<>();
-            responseMap.put("result", resultado);
-
-            Content functionResponseMsg = Content.builder()
-                    .role("user")
-                    .parts(Arrays.asList(
-                        Part.builder()
-                            .functionResponse(
-                                FunctionResponse.builder()
-                                    .name(functionCall.name().get())
-                                    .response(responseMap)
-                                    .build()
-                            )
-                            .build()
-                    ))
-                    .build();
+            // Monta uma mensagem com o resultado textual da execução da ferramenta
+            String promptSintese = String.format(
+                "Pergunta do Usuário: %s\n\n" +
+                "A ferramenta '%s' foi executada com o seguinte resultado do banco de dados:\n%s\n\n" +
+                "Por favor, responda ao usuário com base nesses dados retornados de forma clara e amigável.",
+                promptUsuario, nomeFuncao, resultadoJson
+            );
 
             GenerateContentResponse responseFinal = client.models.generateContent(
                     MODELO,
-                    Arrays.asList(userMsg, modelMsg, functionResponseMsg),
+                    promptSintese,
                     config
             );
 
             return responseFinal.text();
         } catch (Exception e) {
-            return "Operação realizada com sucesso no sistema, porém falhou na sintetização da resposta: " + e.getMessage();
+            e.printStackTrace();
+            return "Consegui consultar os dados no banco de dados, mas falhei ao processar a resposta final para você: " + e.getMessage();
         }
     }
 
     // ================================================================
-    // EXECUÇÃO DAS FUNÇÕES LOCAIS (DISPATCHER)
+    // EXECUÇÃO DAS FUNÇÕES LOCAIS (Chamando os Services diretos)
     // ================================================================
 
     private Object executarFuncao(String nomeFuncao, Map<String, Object> argumentos) {
         switch (nomeFuncao) {
             case "buscarCliente":
                 return executarBuscarCliente(argumentos);
-            case "agendarConsulta":
-                return executarAgendarConsulta(argumentos);
+            case "agendarAtendimento":
+                return executarAgendarAtendimento(argumentos);
             case "verificarHorarios":
                 return executarVerificarHorarios(argumentos);
             case "buscarAtendimento":
@@ -271,39 +263,38 @@ public class ServiceGemini {
 
     private Object executarBuscarCliente(Map<String, Object> args) {
         try {
-            String url = API_URL + "/clientes";
-            if (args.containsKey("nroCliente")) {
-                url += "?nroCliente=" + args.get("nroCliente");
-            } else if (args.containsKey("nomeCliente")) {
-                url += "?nomeCliente=" + args.get("nomeCliente");
-            }
-            RestTemplate restTemplate = new RestTemplate();
-            return restTemplate.getForEntity(url, Object.class).getBody();
+            String nomeCliente = args.containsKey("nomeCliente") ? args.get("nomeCliente").toString() : null;
+            Integer nroCliente = args.containsKey("nroCliente") ? Integer.parseInt(args.get("nroCliente").toString()) : null;
+            
+            return clienteService.listarClientes(nomeCliente, nroCliente);
         } catch (Exception e) {
             return Map.of("erro", "Erro ao buscar cliente: " + e.getMessage());
         }
     }
 
-    private Object executarAgendarConsulta(Map<String, Object> args) {
+    private Object executarAgendarAtendimento(Map<String, Object> args) {
         try {
-            String url = API_URL + "/consultas";
-            RestTemplate restTemplate = new RestTemplate();
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            HttpEntity<Map<String, Object>> request = new HttpEntity<>(args, headers);
+            Atendimento vo = new Atendimento();
+            vo.nroAnimal = Integer.parseInt(args.get("nroAnimal").toString());
+            vo.nroVeterinario = Integer.parseInt(args.get("nroVeterinario").toString());
+            vo.nroTipoAtendimento = Integer.parseInt(args.get("nroTipoAtendimento").toString());
+            vo.ini_dataAtendimento = args.get("ini_dataAtendimento").toString();
+            
+            if (args.containsKey("observacoes")) {
+                vo.observacoes = args.get("observacoes").toString();
+            }
 
-            ResponseEntity<Object> response = restTemplate.postForEntity(url, request, Object.class);
-            return response.getBody();
+            return atendimentoService.agendarAtendimento(vo);
         } catch (Exception e) {
-            return Map.of("erro", "Erro ao agendar consulta: " + e.getMessage());
+            return Map.of("erro", "Erro ao agendar atendimento: " + e.getMessage());
         }
     }
 
     private Object executarVerificarHorarios(Map<String, Object> args) {
         try {
-            String url = API_URL + "/horarios?nroVeterinario=" + args.get("nroVeterinario");
-            RestTemplate restTemplate = new RestTemplate();
-            return restTemplate.getForEntity(url, Object.class).getBody();
+            Integer nroVeterinario = Integer.parseInt(args.get("nroVeterinario").toString());
+            List<?> horarios = veterinarioService.calcularHorariosDisponiveis(nroVeterinario);
+            return horarios.stream().map(Object::toString).toList();
         } catch (Exception e) {
             return Map.of("erro", "Erro ao verificar horários: " + e.getMessage());
         }
@@ -311,9 +302,11 @@ public class ServiceGemini {
 
     private Object executarBuscarAtendimento(Map<String, Object> args) {
         try {
-            String url = API_URL + "/atendimentos";
-            RestTemplate restTemplate = new RestTemplate();
-            return restTemplate.getForEntity(url, Object.class).getBody();
+            String nomeCliente = args.containsKey("nomeCliente") ? args.get("nomeCliente").toString() : null;
+            Integer nroAnimal = args.containsKey("nroAnimal") ? Integer.parseInt(args.get("nroAnimal").toString()) : null;
+            Integer nroTipoAtendimento = args.containsKey("nroTipoAtendimento") ? Integer.parseInt(args.get("nroTipoAtendimento").toString()) : null;
+
+            return atendimentoService.listarAtendimentos(nomeCliente, nroAnimal, nroTipoAtendimento);
         } catch (Exception e) {
             return Map.of("erro", "Erro ao buscar atendimento: " + e.getMessage());
         }
