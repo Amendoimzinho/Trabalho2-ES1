@@ -120,7 +120,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             try {
                 await api.criarAtendimento(novoAgendamento);
-                alert('✅ Agendamento realizado com sucesso!');
+                alert('Agendamento realizado com sucesso!');
                 formAgendamento.reset();
                 
                 await carregarHistoricoCliente(); 
@@ -129,7 +129,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (btnHistorico) btnHistorico.click();
                 
             } catch (err) {
-                alert('❌ Erro ao agendar: O servidor recusou os dados (Erro 400). Verifique o console.');
+                alert('Erro ao agendar: O servidor recusou os dados (Erro 400). Verifique o console.');
                 console.error("Detalhe do erro:", err);
             } finally {
                 btnSubmit.innerText = 'Confirmar Agendamento';
@@ -138,7 +138,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 
-    // 5. CARREGAR HISTÓRICO FILTRADO PARA O CLIENTE
+    // historico de cliente
     async function carregarHistoricoCliente() {
         const tbody = document.querySelector('#tabela-historico-cliente tbody');
         if (!tbody) return;

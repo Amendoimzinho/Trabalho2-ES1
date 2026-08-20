@@ -2,8 +2,18 @@ const API_BASE_URL = 'http://localhost:8080/api';
 
 const api = {
     // ==== Clientes
-    async listarClientes() {
-        const res = await fetch(`${API_BASE_URL}/clientes`);
+    async listarClientes(nomeCliente = null, nroCliente = null, cpfCliente = null) {
+        let url = `${API_BASE_URL}/clientes`;
+        const params = [];
+        
+        if (nomeCliente) params.push(`nomeCliente=${encodeURIComponent(nomeCliente)}`);
+        if (nroCliente) params.push(`nroCliente=${encodeURIComponent(nroCliente)}`);
+        
+        if (params.length > 0) {
+            url += `?${params.join('&')}`;
+        }
+
+        const res = await fetch(url);
         if (!res.ok) throw new Error('Erro ao listar clientes');
         return await res.json();
     },

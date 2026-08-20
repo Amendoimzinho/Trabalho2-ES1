@@ -118,14 +118,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Tabela de Clientes
-    async function carregarListaClientes() {
+    async function carregarListaClientes(filtroNome = null, filtroId = null) {
         const tbody = document.querySelector('#tabela-clientes tbody');
         if (!tbody) return;
 
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--primary-blue);">Pesquisando...</td></tr>';
+
         try {
-            const clientes = await api.listarClientes();
+            let clientes = await api.listarClientes(filtroNome, filtroId);
+
             if (!clientes || clientes.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Nenhum cliente cadastrado.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Nenhum cliente encontrado.</td></tr>';
                 return;
             }
 
@@ -144,6 +147,25 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    const inputFiltroNome = document.getElementById('filtro-cli-nome');
+    const inputFiltroId = document.getElementById('filtro-cli-id');
+    
+    // delay pesquisa 
+    let debounceTimer;
+
+    function acionarFiltroClientes() {
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+            const nome = inputFiltroNome?.value.trim() || null;
+            const id = inputFiltroId?.value.trim() || null;
+            
+            carregarListaClientes(nome, id);
+        }, 300); 
+    }
+
+    inputFiltroNome?.addEventListener('input', acionarFiltroClientes);
+    inputFiltroId?.addEventListener('input', acionarFiltroClientes);
+
     // Carregar veterinarios
     async function carregarListaVeterinarios() {
         const tbody = document.querySelector('#tabela-veterinarios tbody');
@@ -157,19 +179,89 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             tbody.innerHTML = vets.map((v) => `
-                <tr>
-                <td>#${v.nroVeterinario ?? '-'}</td>
-                <td><strong>Dr(a). ${v.nome || '-'}</strong></td>
-                <td><span class="badge-tag">${v.CRMV || 'Sem CRMV'}</span></td>
+                <tr class="linha-veterinario" data-id="${v.nroVeterinario ?? ''}" data-nome="${v.nome || ''}" data-crmv="${v.CRMV || ''}" style="cursor: pointer;" title="Clique para ver os horários">
+                  <td>#${v.nroVeterinario ?? '-'}</td>
+                  <td><strong>Dr(a). ${v.nome || '-'}</strong></td>
+                  <td><span class="badge-tag">${v.CRMV || 'Sem CRMV'}</span></td>
                 </tr>
             `).join('');
+
+            document.querySelectorAll('.linha-veterinario').forEach(row => {
+                row.addEventListener('click', () => {
+                    const id = row.getAttribute('data-id');
+                    const nome = row.getAttribute('data-nome');
+                    const crmv = row.getAttribute('data-crmv');
+                    abrirModalVeterinario(id, nome, crmv);
+                });
+            });
+
         } catch (err) {
             console.error(err);
             tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: red;">Erro ao carregar veterinários.</td></tr>';
         }
     }
 
-    // Atendimentos
+    async function abrirModalVeterinario(id, nome, crmv) {
+        const modal = document.getElementById('modal-veterinario');
+        const containerHorarios = document.getElementById('modal-vet-horarios');
+
+        document.getElementById('modal-vet-nome').textContent = `Dr(a). ${nome || 'Não informado'}`;
+        document.getElementById('modal-vet-id').textContent = id || '-';
+        document.getElementById('modal-vet-crmv').textContent = crmv || 'Sem CRMV';
+        
+        modal.style.display = 'flex';
+        containerHorarios.innerHTML = '<span style="color: var(--primary-blue);">Consultando agenda no servidor...</span>';
+
+        if (!id) {
+            containerHorarios.innerHTML = '<span style="color: red;">ID inválido para buscar horários.</span>';
+            return;
+        }
+
+        try {
+            const horarios = await api.listarHorariosVeterinario(id);
+            
+            if (!horarios || horarios.length === 0) {
+                containerHorarios.innerHTML = '<span style="color: var(--muted-text);">Não há horários disponíveis no momento.</span>';
+                return;
+            }
+
+            containerHorarios.innerHTML = horarios.map(h => {
+                let dataExibicao = h;
+                const partes = h.split('T');
+                if (partes.length === 2) {
+                    const [ano, mes, dia] = partes[0].split('-');
+                    const hora = partes[1].substring(0, 5); 
+                    dataExibicao = `${dia}/${mes}/${ano} - <span class="material-symbols-outlined">schedule</span> <strong>${hora}</strong>`;
+                }
+                
+                return `
+                    <div style="background: #F1F5F9; padding: 12px; border-radius: 8px; font-size: 0.95rem; border-left: 4px solid var(--primary-blue);">
+                        <span class="material-symbols-outlined">calendar_today</span> ${dataExibicao}
+                    </div>
+                `;
+            }).join('');
+
+        } catch (err) {
+            console.error('Erro ao buscar horários:', err);
+            containerHorarios.innerHTML = '<span style="color: red;">Falha ao carregar os horários.</span>';
+        }
+    }
+
+    const btnFecharModal = document.getElementById('btn-fechar-modal');
+    const modalVet = document.getElementById('modal-veterinario');
+
+    if (btnFecharModal && modalVet) {
+        btnFecharModal.addEventListener('click', () => {
+            modalVet.style.display = 'none';
+        });
+
+        window.addEventListener('click', (e) => {
+            if (e.target === modalVet) {
+                modalVet.style.display = 'none';
+            }
+        });
+    }
+
     async function carregarListaAtendimentos() {
         const tbody = document.querySelector('#tabela-atendimentos-atendente tbody');
         if (!tbody) return;
@@ -235,11 +327,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
             try {
                 await api.criarAtendimento(novoAgendamento);
-                alert('✅ Agendamento realizado com sucesso!');
+                alert('Agendamento realizado com sucesso!');
                 formAtendimento.reset();
                 await carregarListaAtendimentos();
             } catch (err) {
-                alert('❌ Erro ao agendar: ' + err.message);
+                alert('Erro ao agendar: ' + err.message);
             } finally {
                 btnSubmit.innerText = 'Confirmar Agendamento';
                 btnSubmit.disabled = false;

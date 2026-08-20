@@ -112,6 +112,16 @@
         <div class="card-header">
           <h2>Clientes Cadastrados</h2>
         </div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label for="filtro-cli-nome">Nome</label>
+            <input type="text" id="filtro-cli-nome" placeholder="Digite o nome...">
+          </div>
+          <div class="form-group">
+            <label for="filtro-cli-id">ID</label>
+            <input type="number" id="filtro-cli-id" placeholder="Ex: 1">
+          </div>
+        </div>
         <div class="table-responsive">
           <table id="tabela-clientes">
             <thead>
@@ -247,6 +257,25 @@
         </div>
       </div>
     </section>
+    
+    <div id="modal-veterinario" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; justify-content: center; align-items: center;">
+      <div style="background: #fff; padding: 25px; border-radius: 12px; max-width: 500px; width: 90%; max-height: 85vh; overflow-y: auto; position: relative; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+        
+        <button id="btn-fechar-modal" style="position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 1.8rem; cursor: pointer; color: #e74c3c;">&times;</button>
+        
+        <h2 id="modal-vet-nome" style="margin-bottom: 10px; color: var(--primary-blue);">Dr(a). Nome</h2>
+        <p style="color: var(--dark-text); margin-bottom: 5px;"><strong>ID:</strong> <span id="modal-vet-id"></span></p>
+        <p style="color: var(--dark-text); margin-bottom: 20px;"><strong>CRMV:</strong> <span id="modal-vet-crmv"></span></p>
+        
+        <!-- SE O SEU VO DE VETERINÁRIO TIVER OUTRAS INFORMAÇÕES (COMO TELEFONE), ADICIONE NOVAS TAGS <p> AQUI -->
+
+        <h3 style="margin-bottom: 15px; border-bottom: 1px solid #ccc; padding-bottom: 8px;">Horários Disponíveis</h3>
+        
+        <div id="modal-vet-horarios" style="display: flex; flex-direction: column; gap: 10px;">
+            <!-- Os horários gerados pelo JavaScript aparecerão aqui -->
+        </div>
+      </div>
+    </div>
   </main>
 
   <script src="scripts/api.js"></script>
