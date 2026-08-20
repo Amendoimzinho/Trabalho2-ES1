@@ -235,3 +235,17 @@ table tbody tr:hover {
   background: var(--light-blue);
   color: var(--secondary-blue);
 }
+
+.material-symbols-outlined {
+  font-size: 1.25rem;
+  vertical-align: middle;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 4px;
+}
+
+.brand-badge.material-symbols-outlined {
+  font-size: 1.5rem;
+  margin-right: 6px;
+}

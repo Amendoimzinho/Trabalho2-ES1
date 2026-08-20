@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Patinhas Felizes - Painel do Gestor</title>
   <link rel="stylesheet" href="styles/main.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" />
   <style>
-    /* Estilos específicos para o dashboard de gestão */
     .kpi-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -64,7 +64,7 @@
   <!-- BARRA SUPERIOR -->
   <header class="navbar">
     <a href="#" class="navbar-brand">
-      <span class="brand-badge">🐾</span> Patinhas <span style="color: var(--primary-yellow);">Felizes</span>
+      <span class="material-symbols-outlined brand-badge">pets</span> Patinhas <span style="color: var(--primary-yellow);">Felizes</span>
     </a>
     <nav class="navbar-roles">
       <a href="atendente.html" class="role-btn">Atendente</a>
@@ -76,18 +76,24 @@
 
   <!-- SUB-BARRA DE GESTÃO -->
   <nav class="subnav-container">
-    <button class="subnav-btn active" data-target="secao-dashboard">📊 Visão Geral</button>
-    <button class="subnav-btn" data-target="secao-relatorio-atendimentos">📅 Relatório de Atendimentos</button>
-    <button class="subnav-btn" data-target="secao-equipe">🩺 Corpo Clínico</button>
-    <button class="subnav-btn" data-target="secao-insights-ia">✨ Insights com IA</button>
+    <button class="subnav-btn active" data-target="secao-dashboard">
+      <span class="material-symbols-outlined">monitoring</span> Visão Geral
+    </button>
+    <button class="subnav-btn" data-target="secao-relatorio-atendimentos">
+      <span class="material-symbols-outlined">calendar_month</span> Relatório de Atendimentos
+    </button>
+    <button class="subnav-btn" data-target="secao-equipe">
+      <span class="material-symbols-outlined">stethoscope</span> Corpo Clínico
+    </button>
+    <button class="subnav-btn" data-target="secao-insights-ia">
+      <span class="material-symbols-outlined">auto_awesome</span> Insights com IA
+    </button>
   </nav>
 
   <main class="main-container">
 
     <!-- 1. SEÇÃO DASHBOARD (VISÃO GERAL) -->
     <section id="secao-dashboard" class="content-section active">
-      
-      <!-- CARDS DE MÉTRICAS -->
       <div class="kpi-grid">
         <div class="kpi-card">
           <span class="kpi-title">Total de Clientes</span>
@@ -107,7 +113,6 @@
         </div>
       </div>
 
-      <!-- ÚLTIMAS ATIVIDADES -->
       <div class="card-box">
         <div class="card-header">
           <h2>Últimos Atendimentos Registrados</h2>
@@ -183,7 +188,9 @@
     <!-- 4. SEÇÃO INSIGHTS COM GEMINI IA -->
     <section id="secao-insights-ia" class="content-section">
       <div class="ai-box">
-        <h2 style="color: var(--primary-blue); margin-bottom: 8px;">✨ Análise Inteligente da Clínica</h2>
+        <h2 style="color: var(--primary-blue); margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+          <span class="material-symbols-outlined">auto_awesome</span> Análise Inteligente da Clínica
+        </h2>
         <p style="color: var(--muted-text); font-size: 0.95rem; margin-bottom: 15px;">
           Peça ao assistente inteligente para analisar o volume de atendimentos, sugerir melhorias operacionais ou resumir a movimentação geral da clínica.
         </p>
