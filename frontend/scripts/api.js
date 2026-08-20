@@ -1,4 +1,4 @@
-const API_BASE_URL = 'https://trabalho2-es1.onrender.com/api';
+const API_BASE_URL = 'http://localhost:8080/api';
 
 const api = {
   // ==========================================
@@ -11,7 +11,8 @@ const api = {
   },
 
   async buscarClientePorId(id) {
-    const res = await fetch(`${API_BASE_URL}/clientes/${id}`);
+    // Alinhado com o @RequestParam nroCliente do ControllerClientes
+    const res = await fetch(`${API_BASE_URL}/clientes?nroCliente=${id}`);
     if (!res.ok) throw new Error('Cliente não encontrado');
     return await res.json();
   },
@@ -19,7 +20,6 @@ const api = {
   async buscarClientePorCpf(cpf) {
     const res = await fetch(`${API_BASE_URL}/clientes/buscar/cpf?cpf=${encodeURIComponent(cpf)}`);
     if (!res.ok) {
-      // Fallback: se o endpoint específico não existir, lista e filtra localmente
       const clientes = await this.listarClientes();
       const cli = clientes.find(c => (c.cpf || c.CPF) === cpf);
       if (!cli) throw new Error('Cliente não encontrado pelo CPF informado');
@@ -28,18 +28,18 @@ const api = {
     return await res.json();
   },
 
-    async criarCliente(cliente) {
-        const res = await fetch(`${API_BASE_URL}/clientes`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(cliente)
-        });
-        if (!res.ok) {
-            const erroServidor = await res.text();
-            throw new Error(`Status ${res.status}: ${erroServidor || res.statusText}`);
-        }
-        return await res.json();
-    },
+  async criarCliente(cliente) {
+    const res = await fetch(`${API_BASE_URL}/clientes`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(cliente)
+    });
+    if (!res.ok) {
+      const erroServidor = await res.text();
+      throw new Error(`Status ${res.status}: ${erroServidor || res.statusText}`);
+    }
+    return await res.json();
+  },
 
   // ==========================================
   // 2. PETS / ANIMAIS
@@ -47,7 +47,6 @@ const api = {
   async listarPets() {
     const res = await fetch(`${API_BASE_URL}/clientes/animais`);
     if (!res.ok) {
-      // Fallback se animais ficarem agrupados por clientes
       const clientes = await this.listarClientes();
       return clientes.flatMap(c => c.animais || c.pets || []);
     }
@@ -68,32 +67,28 @@ const api = {
   // 3. VETERINÁRIOS
   // ==========================================
   async listarVeterinarios() {
+    // Alinhado com o ControllerVeterinario
     const res = await fetch(`${API_BASE_URL}/veterinarios`);
     if (!res.ok) throw new Error('Erro ao listar veterinários');
     return await res.json();
   },
 
-  async criarVeterinario(veterinario) {
-    const res = await fetch(`${API_BASE_URL}/veterinarios`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(veterinario)
-    });
-    if (!res.ok) throw new Error('Erro ao salvar veterinário');
-    return await res.json();
-  },
-
   async listarHorariosVeterinario(idVeterinario) {
-    const res = await fetch(`${API_BASE_URL}/veterinarios/${idVeterinario}/horarios`);
+    // Alinhado com a rota /{id}/horarios-disponiveis do ControllerVeterinario
+    const res = await fetch(`${API_BASE_URL}/veterinarios/${idVeterinario}/horarios-disponiveis`);
     if (!res.ok) throw new Error('Erro ao buscar horários do veterinário');
     return await res.json();
   },
 
   // ==========================================
-  // 4. ATENDIMENTOS, CONSULTAS E VACINAS
+  // 4. ATENDIMENTOS (Alinhado ao ControllerAtendimento)
   // ==========================================
-  async listarAtendimentos() {
-    const res = await fetch(`${API_BASE_URL}/atendimentos`);
+  async listarAtendimentos(nomeCliente = null) {
+    let url = `${API_BASE_URL}/atendimentos`;
+    if (nomeCliente) {
+      url += `?nomeCliente=${encodeURIComponent(nomeCliente)}`;
+    }
+    const res = await fetch(url);
     if (!res.ok) throw new Error('Erro ao listar atendimentos');
     return await res.json();
   },
@@ -104,27 +99,10 @@ const api = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(atendimento)
     });
-    if (!res.ok) throw new Error('Erro ao registrar atendimento');
-    return await res.json();
-  },
-
-  async registrarConsulta(dadosConsulta) {
-    const res = await fetch(`${API_BASE_URL}/atendimentos/consulta`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(dadosConsulta)
-    });
-    if (!res.ok) throw new Error('Erro ao registrar detalhes da consulta');
-    return await res.json();
-  },
-
-  async registrarVacinacao(dadosVacina) {
-    const res = await fetch(`${API_BASE_URL}/atendimentos/vacinacao`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(dadosVacina)
-    });
-    if (!res.ok) throw new Error('Erro ao registrar vacinação');
+    if (!res.ok) {
+      const erroServidor = await res.text();
+      throw new Error(`Erro ${res.status}: ${erroServidor}`);
+    }
     return await res.json();
   },
 
@@ -135,14 +113,12 @@ const api = {
     const prompt = {
       mensagem: promptTexto,
       temperatura: 0.7,
-      maxTokens: 800 // Aumentado para evitar corte de respostas longas
+      maxTokens: 800
     };
 
     const res = await fetch(`${API_BASE_URL}/gemini/perguntar`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(prompt)
     });
 

@@ -83,6 +83,7 @@ public class ServiceAtendimento {
     private Atendimento toVO(EntityAtendimento entidade) {
         Atendimento vo = new Atendimento();
 
+        vo.nroAtendimento = entidade.getNroAtendimento();
         vo.nroAnimal = entidade.getAnimal().getNroAnimal();
         vo.nomeAnimal = entidade.getAnimal().getNomeAnimal();
         vo.nroVeterinario = entidade.getVeterinario().getNroVeterinario();

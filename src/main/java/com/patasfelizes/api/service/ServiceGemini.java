@@ -28,13 +28,11 @@ public class ServiceGemini {
     private final Client client;
     private final ObjectMapper objectMapper;
     
-    // Injeção direta dos seus Services existentes no projeto
     private final ServiceClientes clienteService;
     private final ServiceAtendimento atendimentoService;
     private final ServiceVeterinario veterinarioService;
 
-    // Modelo estável oficial suportado pela SDK Java
-    private static final String MODELO = "gemini-flash-latest";
+    private static final String MODELO = "gemini-3.6-flash";
 
     private static final String SYSTEM_PROMPT = """
         Você é um assistente virtual especializado de uma clínica veterinária chamada "PatasFelizes".
@@ -47,10 +45,12 @@ public class ServiceGemini {
         
         REGRAS IMPORTANTES:
         1. Para informações sobre Clientes, use a função 'buscarCliente'
-        2. Para agendar um atendimento/consulta, use a função 'agendarAtendimento'
+        2. Para agendar um atendimento/consulta, use a função 'agendarAtendimento'.
         3. Para verificar horários disponíveis de um veterinário, use a função 'verificarHorarios'
         4. Para buscar dados de atendimentos existentes, use a função 'buscarAtendimento'
-        5. SEMPRE confirme os dados antes de agendar algo
+        5. Para todos os casos, não e necessario checar se os argumentos são validos, pois os edpoints ja lidam com isso.
+        Voce consegue executar apenas uma funcao por vez, entao fazer essa checagem te impossibilita de fazer a funcao pedida pelo usuario
+        6. caso o usuario peça uma função fora do escopo pedido entre as regras 1 e 4, avise-o educadamente.
         
         Lembre-se: Você é um assistente amigável e prestativo da Clínica PatasFelizes!
         """;
@@ -108,7 +108,6 @@ public class ServiceGemini {
 
             GenerateContentResponse response = client.models.generateContent(MODELO, entrada.getMensagem(), config);
 
-            // Captura functionCalls com verificação de segurança contra exceções da SDK
             List<FunctionCall> functionCalls = null;
             try {
                 functionCalls = response.functionCalls();
@@ -125,7 +124,6 @@ public class ServiceGemini {
 
                 Object resultado = executarFuncao(nomeFuncao, argumentos);
 
-                // Passa o resultado formatado em texto seguro para evitar a exceção do SDK
                 String respostaFinal = enviarResultadoParaIA(entrada.getMensagem(), nomeFuncao, resultado, config);
 
                 GeminiSaidaDTO saida = new GeminiSaidaDTO();
@@ -149,10 +147,6 @@ public class ServiceGemini {
             throw new RuntimeException("Erro ao processar chamada no Gemini: " + e.getMessage(), e);
         }
     }
-
-    // ================================================================
-    // DECLARAÇÃO DAS TOOLS / FUNCTIONS
-    // ================================================================
 
     private FunctionDeclaration criarToolBuscarCliente() {
         Map<String, Schema> properties = new HashMap<>();
@@ -213,15 +207,10 @@ public class ServiceGemini {
                 .build();
     }
 
-    // ================================================================
-    // RETORNO DO RESULTADO DA TOOL PARA A IA SINTETIZAR
-    // ================================================================
-
     private String enviarResultadoParaIA(String promptUsuario, String nomeFuncao, Object resultado, GenerateContentConfig config) {
         try {
             String resultadoJson = objectMapper.writeValueAsString(resultado);
 
-            // Monta uma mensagem com o resultado textual da execução da ferramenta
             String promptSintese = String.format(
                 "Pergunta do Usuário: %s\n\n" +
                 "A ferramenta '%s' foi executada com o seguinte resultado do banco de dados:\n%s\n\n" +
@@ -241,10 +230,6 @@ public class ServiceGemini {
             return "Consegui consultar os dados no banco de dados, mas falhei ao processar a resposta final para você: " + e.getMessage();
         }
     }
-
-    // ================================================================
-    // EXECUÇÃO DAS FUNÇÕES LOCAIS (Chamando os Services diretos)
-    // ================================================================
 
     private Object executarFuncao(String nomeFuncao, Map<String, Object> argumentos) {
         switch (nomeFuncao) {

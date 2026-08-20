@@ -1,5 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
+  // ========================================================
   // 1. NAVEGAÇÃO ENTRE ABAS
+  // ========================================================
   const navButtons = document.querySelectorAll('.subnav-btn');
   const sections = document.querySelectorAll('.content-section');
 
@@ -17,7 +19,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  // ========================================================
   // 2. CARREGAR FILA DE ATENDIMENTOS
+  // ========================================================
   async function carregarFilaAtendimentos() {
     const tbody = document.querySelector('#tabela-fila-vets tbody');
     if (!tbody) return;
@@ -25,21 +29,34 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const atendimentos = await api.listarAtendimentos();
       if (!atendimentos || atendimentos.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Nenhum atendimento na fila no momento.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">Nenhum atendimento na fila.</td></tr>';
         return;
       }
 
       tbody.innerHTML = atendimentos.map((a) => {
-        const idAtend = a.id || a.idAtendimento || '-';
+        let dataExibicao = 'Hoje';
+        if (a.ini_dataAtendimento) {
+          const partes = a.ini_dataAtendimento.split('T');
+          if (partes.length === 2) {
+            const [ano, mes, dia] = partes[0].split('-');
+            const hora = partes[1].substring(0, 5);
+            dataExibicao = `${dia}/${mes}/${ano} às ${hora}`;
+          } else {
+            dataExibicao = a.ini_dataAtendimento;
+          }
+        }
+
+        const idRef = a.nroAnimal || '';
+
         return `
           <tr>
-            <td>#${idAtend}</td>
-            <td>${a.data || 'Hoje'}</td>
-            <td><strong>${a.nomeAnimal || a.animal?.nome || 'Pet'}</strong></td>
-            <td>${a.nomeCliente || a.cliente?.nome || '-'}</td>
-            <td><span class="badge-tag">${a.tipo || 'Consulta'}</span></td>
+            <td># ${idRef}</td>
+            <td>${dataExibicao}</td>
+            <td><strong>${a.nomeAnimal || 'Pet'}</strong></td>
+            <td>-</td>
+            <td><span class="badge-tag">${a.nroTipoAtendimento || 'Consulta'}</span></td>
             <td>
-              <button class="btn-primary-yellow btn-atender" data-id="${idAtend}" style="padding: 4px 10px; font-size: 0.8rem;">
+              <button class="btn-primary-yellow btn-atender" data-id="${idRef}" style="padding: 4px 10px; font-size: 0.8rem;">
                 Atender
               </button>
             </td>
@@ -47,14 +64,16 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
       }).join('');
 
-      // Botão rápido para preencher o formulário
       document.querySelectorAll('.btn-atender').forEach((b) => {
         b.addEventListener('click', (e) => {
           const id = e.target.getAttribute('data-id');
-          document.getElementById('consulta-id-atendimento').value = id;
-          document.getElementById('vacina-id-atendimento').value = id;
           
-          // Muda para a aba de consulta automaticamente
+          const campoConsulta = document.getElementById('consulta-id-atendimento');
+          const campoVacina = document.getElementById('vacina-id-atendimento');
+          
+          if (campoConsulta) campoConsulta.value = id;
+          if (campoVacina) campoVacina.value = id;
+          
           const btnConsultaTab = document.querySelector('[data-target="secao-consulta"]');
           if (btnConsultaTab) btnConsultaTab.click();
         });
@@ -62,58 +81,87 @@ document.addEventListener('DOMContentLoaded', () => {
 
     } catch (err) {
       console.error(err);
-      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color: red;">Erro ao carregar fila de atendimentos.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; color: red;">Erro ao carregar fila.</td></tr>';
     }
   }
 
-  // 3. REGISTRAR CONSULTA (PRONTUÁRIO)
+  // ========================================================
+  // 3. REGISTRAR CONSULTA (Prontuário salvo em "observacoes")
+  // ========================================================
   const formConsulta = document.getElementById('form-registro-consulta');
   if (formConsulta) {
     formConsulta.addEventListener('submit', async (e) => {
       e.preventDefault();
+      
+      const btnSubmit = formConsulta.querySelector('button[type="submit"]');
+      btnSubmit.innerText = 'Salvando...';
+      btnSubmit.disabled = true;
 
-      const dadosConsulta = {
-        idAtendimento: document.getElementById('consulta-id-atendimento').value,
-        peso: document.getElementById('consulta-peso').value,
-        temperatura: document.getElementById('consulta-temperatura').value,
-        diagnostico: document.getElementById('consulta-diagnostico').value,
-        prescricao: document.getElementById('consulta-prescricao').value
+      const peso = document.getElementById('consulta-peso').value;
+      const temp = document.getElementById('consulta-temperatura').value;
+      const diag = document.getElementById('consulta-diagnostico').value;
+      const presc = document.getElementById('consulta-prescricao').value;
+      
+      const textoProntuario = `[PRONTUÁRIO] Peso: ${peso}kg | Temp: ${temp}°C | Diag: ${diag} | Presc: ${presc}`;
+
+      const novoRegistro = {
+        nroAnimal: parseInt(document.getElementById('consulta-id-atendimento').value) || 0,
+        observacoes: textoProntuario,
+        nroTipoAtendimento: 2 // VOLTOU: ID 2 indica "Consulta Finalizada/Prontuário"
       };
 
       try {
-        await api.registrarConsulta(dadosConsulta);
-        alert('Prontuário clínico salvo com sucesso no banco!');
+        await api.criarAtendimento(novoRegistro);
+        alert('✅ Prontuário clínico salvo com sucesso no banco!');
         formConsulta.reset();
         carregarFilaAtendimentos();
       } catch (err) {
-        alert('Não foi possível salvar o prontuário: ' + err.message);
+        alert('❌ Erro ao salvar prontuário: ' + err.message);
+      } finally {
+        btnSubmit.innerText = 'Finalizar e Salvar Consulta';
+        btnSubmit.disabled = false;
       }
     });
   }
 
-  // 4. REGISTRAR VACINAÇÃO
+  // ========================================================
+  // 4. REGISTRAR VACINAÇÃO (Salvo em "observacoes")
+  // ========================================================
   const formVacina = document.getElementById('form-registro-vacina');
   if (formVacina) {
     formVacina.addEventListener('submit', async (e) => {
       e.preventDefault();
+      
+      const btnSubmit = formVacina.querySelector('button[type="submit"]');
+      btnSubmit.innerText = 'Salvando...';
+      btnSubmit.disabled = true;
 
-      const dadosVacina = {
-        idAtendimento: document.getElementById('vacina-id-atendimento').value,
-        vacina: document.getElementById('vacina-nome').value,
-        lote: document.getElementById('vacina-lote').value,
-        proximaDose: document.getElementById('vacina-proxima-dose').value
+      const nomeVacina = document.getElementById('vacina-nome').value;
+      const lote = document.getElementById('vacina-lote').value;
+      const proxDose = document.getElementById('vacina-proxima-dose').value;
+      
+      const textoVacina = `[VACINA] Nome: ${nomeVacina} | Lote: ${lote} | Próx. Dose: ${proxDose}`;
+
+      const novoRegistro = {
+        nroAnimal: parseInt(document.getElementById('vacina-id-atendimento').value) || 0,
+        observacoes: textoVacina,
+        nroTipoAtendimento: 3 // VOLTOU: ID 3 indica "Vacinação"
       };
 
       try {
-        await api.registrarVacinacao(dadosVacina);
-        alert('Registro de vacinação salvo com sucesso!');
+        await api.criarAtendimento(novoRegistro);
+        alert('✅ Registro de vacinação salvo com sucesso!');
         formVacina.reset();
         carregarFilaAtendimentos();
       } catch (err) {
-        alert('Não foi possível salvar a vacina: ' + err.message);
+        alert('❌ Erro ao salvar vacina: ' + err.message);
+      } finally {
+        btnSubmit.innerText = 'Salvar Registro de Vacina';
+        btnSubmit.disabled = false;
       }
     });
   }
 
+  // Inicializa a fila
   carregarFilaAtendimentos();
 });

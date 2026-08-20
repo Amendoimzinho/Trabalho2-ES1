@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const ultimos = lista.slice(-5).reverse();
     tbody.innerHTML = ultimos.map(a => `
       <tr>
-        <td>#${a.id || a.idAtendimento || '-'}</td>
+        <td>#${a.nroAtendimento || '-'}</td>
         <td>${a.data || 'Hoje'}</td>
         <td><span class="badge-tag">${a.tipo || 'Consulta'}</span></td>
         <td>${a.nomeAnimal || a.animal?.nome || 'Pet'}</td>

@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
   // ========================================================
-  // 1. NAVEGAÇÃO ENTRE ABAS
+  // 1. NAVEGAÇÃO ENTRE ABAS E CARREGAMENTO
   // ========================================================
   const navButtons = document.querySelectorAll('.subnav-btn');
   const sections = document.querySelectorAll('.content-section');
@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (targetId === 'secao-clientes') carregarListaClientes();
       if (targetId === 'secao-veterinarios') carregarListaVeterinarios();
+      if (targetId === 'secao-atendimentos') carregarListaAtendimentos();
     });
   });
 
@@ -27,7 +28,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const inputTelefone = document.getElementById('cli-telefone');
   const inputCep = document.getElementById('cli-cep');
 
-  // Máscara CPF: 000.000.000-00
   inputCpf?.addEventListener('input', (e) => {
     let v = e.target.value.replace(/\D/g, '');
     v = v.replace(/(\d{3})(\d)/, '$1.$2');
@@ -36,7 +36,6 @@ document.addEventListener('DOMContentLoaded', () => {
     e.target.value = v;
   });
 
-  // Máscara Telefone: (00) 00000-0000
   inputTelefone?.addEventListener('input', (e) => {
     let v = e.target.value.replace(/\D/g, '');
     v = v.replace(/^(\d{2})(\d)/g, '($1) $2');
@@ -44,7 +43,6 @@ document.addEventListener('DOMContentLoaded', () => {
     e.target.value = v;
   });
 
-  // Máscara CEP: 00000-000
   inputCep?.addEventListener('input', (e) => {
     let v = e.target.value.replace(/\D/g, '');
     v = v.replace(/^(\d{5})(\d)/, '$1-$2');
@@ -52,14 +50,12 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // ========================================================
-  // 3. CONSULTA AUTOMÁTICA DE CEP E CÓDIGO IBGE (ViaCEP)
+  // 3. CONSULTA DE CEP (ViaCEP)
   // ========================================================
   inputCep?.addEventListener('blur', async () => {
     const cepLimpo = inputCep.value.replace(/\D/g, '');
-
     if (cepLimpo.length !== 8) return;
 
-    // Feedback visual
     const campoRua = document.getElementById('cli-logradouro');
     const campoBairro = document.getElementById('cli-bairro');
     const campoCidade = document.getElementById('cli-cidade');
@@ -73,63 +69,44 @@ document.addEventListener('DOMContentLoaded', () => {
       const dados = await res.json();
 
       if (dados.erro) {
-        alert('CEP não encontrado. Verifique os dígitos informados.');
+        alert('CEP não encontrado.');
         limparCamposEndereco();
         return;
       }
 
-      // Preenche os campos do formulário com dados do IBGE/ViaCEP
       if (campoRua) campoRua.value = dados.logradouro || '';
       if (campoBairro) campoBairro.value = dados.bairro || '';
       if (campoCidade) campoCidade.value = dados.localidade || '';
       if (campoUf) campoUf.value = dados.uf || '';
       if (campoIbge) campoIbge.value = dados.ibge || '';
 
-      // Foca automaticamente no campo do número
       document.getElementById('cli-numero')?.focus();
-
     } catch (err) {
-      console.error('Erro na consulta do CEP:', err);
-      alert('Não foi possível consultar o CEP no momento.');
+      console.error(err);
       limparCamposEndereco();
     }
   });
 
   function limparCamposEndereco() {
-    const ids = ['cli-logradouro', 'cli-bairro', 'cli-cidade', 'cli-uf', 'cli-ibge'];
-    ids.forEach((id) => {
+    ['cli-logradouro', 'cli-bairro', 'cli-cidade', 'cli-uf', 'cli-ibge'].forEach((id) => {
       const el = document.getElementById(id);
       if (el) el.value = '';
     });
   }
 
   // ========================================================
-  // 4. SUBMISSÃO DO FORMULÁRIO DE CLIENTE
+  // 4. CADASTRO DE CLIENTE
   // ========================================================
   const formCliente = document.getElementById('form-cadastrar-cliente');
   if (formCliente) {
     formCliente.addEventListener('submit', async (e) => {
       e.preventDefault();
 
-      const cpfLimpo = document.getElementById('cli-cpf').value.replace(/\D/g, '');
-      const cepLimpo = document.getElementById('cli-cep').value.replace(/\D/g, '');
-      const emailDigitado = document.getElementById('cli-email').value.trim();
-
-      // IMPORTANTE: o back-end (classe Cliente.java) espera exatamente estes
-      // nomes de campo, com essa mesma capitalização — o Jackson (conversor
-      // de JSON do Spring) diferencia maiúsculas de minúsculas. "nome" não
-      // vira "nomeCliente" sozinho, "cpf" não vira "CPF" sozinho, e "email"
-      // (texto único) não vira "emails" (lista) sozinho — por isso esses
-      // valores chegavam como null no banco.
-      //
-      // Campos que NÃO são enviados porque o back-end não tem onde guardar
-      // ainda: telefone, ddd, numero, complemento, ibge. Ver observação no
-      // final da conversa sobre isso.
       const novoCliente = {
         nomeCliente: document.getElementById('cli-nome').value.trim(),
-        CPF: cpfLimpo,
-        emails: emailDigitado ? [emailDigitado] : [],
-        CEP: cepLimpo,
+        CPF: document.getElementById('cli-cpf').value.replace(/\D/g, ''),
+        emails: [document.getElementById('cli-email').value.trim()].filter(Boolean),
+        CEP: document.getElementById('cli-cep').value.replace(/\D/g, ''),
         logradouro: document.getElementById('cli-logradouro')?.value || '',
         bairro: document.getElementById('cli-bairro')?.value || '',
         cidade: document.getElementById('cli-cidade')?.value || '',
@@ -138,19 +115,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
       try {
         await api.criarCliente(novoCliente);
-        alert('✅ Cliente e endereço cadastrados com sucesso no Banco de Dados!');
+        alert('✅ Cliente cadastrado com sucesso!');
         formCliente.reset();
         limparCamposEndereco();
         carregarListaClientes();
       } catch (err) {
-        console.error('Detalhes do erro:', err);
-        alert('❌ Erro retornado pelo servidor:\n' + err.message);
+        alert('❌ Erro ao cadastrar cliente: ' + err.message);
       }
     });
   }
 
   // ========================================================
-  // 5. CARREGAR TABELAS DO BANCO
+  // 5. CARREGAR TABELA DE CLIENTES
   // ========================================================
   async function carregarListaClientes() {
     const tbody = document.querySelector('#tabela-clientes tbody');
@@ -159,38 +135,28 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const clientes = await api.listarClientes();
       if (!clientes || clientes.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--muted-text);">Nenhum cliente cadastrado.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Nenhum cliente cadastrado.</td></tr>';
         return;
       }
 
-      tbody.innerHTML = clientes.map((c) => {
-        // Campos reais devolvidos pelo Cliente.java: nroCliente, nomeCliente,
-        // CPF, emails (lista), logradouro, bairro, cidade, estado, CEP.
-        // Não existe campo de telefone no back-end ainda.
-        const cpfRaw = c.CPF || '';
-        const cpfFormatado = cpfRaw.length === 11
-          ? cpfRaw.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
-          : (cpfRaw || '-');
-
-        const cidadeUf = c.cidade ? `${c.cidade} / ${c.estado || ''}` : '-';
-        const emailExibido = (c.emails && c.emails.length > 0) ? c.emails[0] : '-';
-
-        return `
-          <tr>
-            <td>#${c.nroCliente ?? '-'}</td>
-            <td><strong>${c.nomeCliente || '-'}</strong></td>
-            <td>${cpfFormatado}</td>
-            <td>${emailExibido}</td>
-            <td>${cidadeUf}</td>
-          </tr>
-        `;
-      }).join('');
+      tbody.innerHTML = clientes.map((c) => `
+        <tr>
+          <td>#${c.nroCliente ?? '-'}</td>
+          <td><strong>${c.nomeCliente || '-'}</strong></td>
+          <td>${c.CPF || '-'}</td>
+          <td>${c.emails?.[0] || '-'}</td>
+          <td>${c.cidade ? c.cidade + ' / ' + (c.estado || '') : '-'}</td>
+        </tr>
+      `).join('');
     } catch (err) {
       console.error(err);
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: red;">Erro ao carregar dados do servidor.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: red;">Erro ao carregar clientes.</td></tr>';
     }
   }
 
+  // ========================================================
+  // 6. CARREGAR TABELA DE VETERINÁRIOS
+  // ========================================================
   async function carregarListaVeterinarios() {
     const tbody = document.querySelector('#tabela-veterinarios tbody');
     if (!tbody) return;
@@ -204,17 +170,97 @@ document.addEventListener('DOMContentLoaded', () => {
 
       tbody.innerHTML = vets.map((v) => `
         <tr>
-          <td>#${v.id || v.idVeterinario || '-'}</td>
-          <td><strong>Dr(a). ${v.nome || v.nomeVeterinario || '-'}</strong></td>
-          <td><span class="badge-tag">${v.crmv || 'Sem CRMV'}</span></td>
+          <td>#${v.nroVeterinario ?? '-'}</td>
+          <td><strong>Dr(a). ${v.nome || '-'}</strong></td>
+          <td><span class="badge-tag">${v.CRMV || 'Sem CRMV'}</span></td>
         </tr>
       `).join('');
     } catch (err) {
       console.error(err);
-      tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: red;">Erro ao carregar dados do servidor.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: red;">Erro ao carregar veterinários.</td></tr>';
     }
   }
 
-  // Inicializa listando os clientes ao abrir a tela
+  // ========================================================
+  // 7. GERENCIAR E LISTAR ATENDIMENTOS (Atendente)
+  // ========================================================
+  async function carregarListaAtendimentos() {
+    const tbody = document.querySelector('#tabela-atendimentos-atendente tbody');
+    if (!tbody) return;
+
+    try {
+      const atendimentos = await api.listarAtendimentos();
+      if (!atendimentos || atendimentos.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center;">Nenhum atendimento agendado.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = atendimentos.map((a) => {
+        let dataExibicao = '-';
+        if (a.ini_dataAtendimento) {
+          const partes = a.ini_dataAtendimento.split('T');
+          if (partes.length === 2) {
+             const [ano, mes, dia] = partes[0].split('-');
+             const hora = partes[1].substring(0, 5);
+             dataExibicao = `${dia}/${mes}/${ano} às ${hora}`;
+          } else {
+             dataExibicao = a.ini_dataAtendimento;
+          }
+        }
+
+        let tipoNome = 'Consulta';
+        if (a.nroTipoAtendimento === 3) tipoNome = 'Vacinação';
+
+        return `
+        <tr>
+          <td>#${a.nroAtendimento || '-'}</td>
+          <td>${dataExibicao}</td>
+          <td>${a.nomeAnimal || '-'}</td>
+          <td>Dr(a). ${a.nomeVeterinario || '-'}</td>
+          <td><span class="badge-tag">${tipoNome}</span></td>
+        </tr>
+        `;
+      }).join('');
+    } catch (err) {
+      console.error(err);
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: red;">Erro ao carregar atendimentos.</td></tr>';
+    }
+  }
+
+  const formAtendimento = document.getElementById('form-agendar-atendente');
+  if (formAtendimento) {
+    formAtendimento.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const btnSubmit = formAtendimento.querySelector('button[type="submit"]');
+      btnSubmit.innerText = 'Agendando...';
+      btnSubmit.disabled = true;
+
+      const dataSelecionada = document.getElementById('atend-data').value;
+      const horaSelecionada = document.getElementById('atend-hora').value;
+      const dataHoraFormatada = `${dataSelecionada}T${horaSelecionada}:00`; 
+
+      const novoAgendamento = {
+        nroAnimal: parseInt(document.getElementById('atend-pet-id').value),
+        nroVeterinario: parseInt(document.getElementById('atend-vet-id').value),
+        ini_dataAtendimento: dataHoraFormatada,
+        nroTipoAtendimento: parseInt(document.getElementById('atend-tipo').value)
+      };
+
+      try {
+        await api.criarAtendimento(novoAgendamento);
+        alert('✅ Agendamento realizado com sucesso!');
+        formAtendimento.reset();
+        await carregarListaAtendimentos();
+      } catch (err) {
+        alert('❌ Erro ao agendar: ' + err.message);
+      } finally {
+        btnSubmit.innerText = 'Confirmar Agendamento';
+        btnSubmit.disabled = false;
+      }
+    });
+  }
+
+  // Inicializa carregando os clientes
   carregarListaClientes();
 });
